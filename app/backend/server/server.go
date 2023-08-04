@@ -12,8 +12,8 @@ import (
    "github.com/go-chi/chi/v5/middleware"
    "github.com/go-chi/render"
    "github.com/jtrw/go-rest"
-   repository "go-rest-events/v1/app/backend/repository"
-   event_handler "go-rest-events/v1/app/backend/handler"
+   repository "micro-rest-events/v1/app/backend/repository"
+   event_handler "micro-rest-events/v1/app/backend/handler"
 )
 
 type Server struct {

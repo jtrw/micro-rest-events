@@ -2,10 +2,10 @@ package repository
 
 import (
     "database/sql"
-    "log"
+    //"log"
     "errors"
   // "fmt"
-   "strconv"
+  // "strconv"
 )
 
 type EventRepository struct {
@@ -29,8 +29,9 @@ func NewEventRepository(conn *sql.DB) *EventRepository {
 }
 
 func (repo EventRepository) Create(e Event) error {
-     sql := `INSERT INTO "events"("uuid", "name", "description", "text") VALUES($1, $2, $3, $4)`
-     _, err := repo.Connection.Exec(sql, e.Uuid, e.Name, e.Description, e.Text)
+     sql := `INSERT INTO "events"("uuid", "user_id", "type", "status", "message", "is_seen") VALUES($1, $2, $3, $4, $5, $6)`
+        _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Message, e.IsSeen)
+
      if err != nil {
         return errors.New("Couldn't create event")
      }
@@ -40,11 +41,9 @@ func (repo EventRepository) Create(e Event) error {
 
 func (repo EventRepository) GetOne(uuid string) (Event, error) {
     event := Event{}
-
-    sql := `SELECT uuid, name, description FROM "events" WHERE uuid = $1`
+    sql := `SELECT uuid, user_id, type, status, message, is_seen FROM "events" WHERE uuid = $1`
     row := repo.Connection.QueryRow(sql, uuid)
-
-    err := row.Scan(&event.Uuid, &event.Name, &event.Description)
+    err := row.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Message, &event.IsSeen)
 
     if err != nil {
         return event, errors.New("Row Not Found")
@@ -55,8 +54,9 @@ func (repo EventRepository) GetOne(uuid string) (Event, error) {
 
 
 func (repo EventRepository) Change(uuid string, e Event) (int64, error) {
-    sql := `UPDATE "events" SET name = $1, description = $2, text = $3 WHERE uuid = $4`
-    res, err := repo.Connection.Exec(sql, e.Name, e.Description, e.Text, uuid)
+    sql := `UPDATE "events" SET user_id = $1, type = $2, status = $3, message = $4, is_seen = $5 WHERE uuid = $6`
+    res, err := repo.Connection.Exec(sql, e.UserId, e.Type, e.Status, e.Message, e.IsSeen, uuid)
+
     if err != nil {
         return 0, errors.New("Can't update row")
     }
