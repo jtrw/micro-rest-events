@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  postgres:
+    container_name: ${APP_COMPOSE_PROJECT_NAME}_postgres_db
+    image: postgres:13-alpine
+    networks:
+      - rest-events-backend
+    env_file:
+      - .env
+    volumes:
+      - rest_events_postgres_db:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+
+networks:
+  rest-events-backend:
+    name: rest-events
+    driver: bridge
+
+volumes:
+  rest_events_postgres_db:

@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  golang:
+    container_name: ${APP_COMPOSE_PROJECT_NAME}_golang
+    build:
+      context: .docker/go
+      dockerfile: Dockerfile
+    networks:
+      - rest-events-backend
+    env_file:
+      - .env
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./cmd/backend:/go/src/cmd/backend
+      - ./:/dist:rw
+    working_dir: /dist
+
+networks:
+  rest-events-backend:
+    name: rest-events-backend
+    driver: bridge
