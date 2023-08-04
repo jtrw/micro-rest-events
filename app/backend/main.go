@@ -6,8 +6,8 @@ import (
    "time"
    "github.com/jessevdk/go-flags"
    "fmt"
-   server "go-rest-events/v1/app/backend/server"
-   "go-rest-events/v1/app/backend/repository"
+   server "micro-rest-events/v1/app/backend/server"
+   "micro-rest-events/v1/app/backend/repository"
    "github.com/joho/godotenv"
    _ "github.com/lib/pq"
 )

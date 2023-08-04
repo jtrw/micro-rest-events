@@ -5,10 +5,10 @@ import (
     "fmt"
     "net/http"
     "database/sql"
-    "strconv"
+    //"strconv"
     "github.com/go-chi/chi/v5"
     "github.com/go-chi/render"
-    event "go-rest-events/v1/app/backend/repository"
+    event "micro-rest-events/v1/app/backend/repository"
     "encoding/json"
     "github.com/google/uuid"
 )
@@ -58,7 +58,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
      rec := event.Event{
         Uuid: uuid,
-        UserId: requestData["user_id"].(string),
+        UserId: requestData["user_id"].(int),
         Type: requestData["type"].(string),
         Status: requestData["status"].(string),
         Message: requestData["message"].(string),
