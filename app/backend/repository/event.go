@@ -4,7 +4,8 @@ import (
     "database/sql"
     //"log"
     "errors"
-  // "fmt"
+   "fmt"
+   "time"
   // "strconv"
 )
 
@@ -29,10 +30,11 @@ func NewEventRepository(conn *sql.DB) *EventRepository {
 }
 
 func (repo EventRepository) Create(e Event) error {
-     sql := `INSERT INTO "events"("uuid", "user_id", "type", "status", "message", "is_seen") VALUES($1, $2, $3, $4, $5, $6)`
-        _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Message, e.IsSeen)
+     sql := `INSERT INTO "events"("uuid", "user_id", "type", "status") VALUES($1, $2, $3, $4)`
+        _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status)
 
      if err != nil {
+        fmt.Println(err)
         return errors.New("Couldn't create event")
      }
 
@@ -52,10 +54,32 @@ func (repo EventRepository) GetOne(uuid string) (Event, error) {
     return event, nil
 }
 
+func (repo EventRepository) GetByUserId(userId int) (Event, error) {
+    event := Event{}
+    sql := `SELECT uuid,
+                   user_id,
+                   type,
+                   status,
+                   message,
+                   is_seen
+            FROM "events"
+            WHERE user_id = $1 AND is_seen = false and status != 'new'
+            ORDER BY created_at ASC LIMIT 1`
+
+    row := repo.Connection.QueryRow(sql, userId)
+    err := row.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Message, &event.IsSeen)
+
+    if err != nil {
+        return event, errors.New("Row Not Found")
+    }
+
+    return event, nil
+}
+
 
 func (repo EventRepository) Change(uuid string, e Event) (int64, error) {
-    sql := `UPDATE "events" SET user_id = $1, type = $2, status = $3, message = $4, is_seen = $5 WHERE uuid = $6`
-    res, err := repo.Connection.Exec(sql, e.UserId, e.Type, e.Status, e.Message, e.IsSeen, uuid)
+    sql := `UPDATE "events" SET status = $1, message = $2, updated_at = $3 WHERE uuid = $4`
+    res, err := repo.Connection.Exec(sql, e.Status, e.Message, time.Now(), uuid)
 
     if err != nil {
         return 0, errors.New("Can't update row")
