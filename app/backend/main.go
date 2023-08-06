@@ -22,6 +22,7 @@ type Server struct {
 
 type Options struct {
     Port string `short:"p" long:"port" env:"SERVER_PORT" default:"8080" description:"Port web server"`
+    Secret string `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
     PinSize int `long:"pinszie" env:"PIN_SIZE" default:"5" description:"pin size"`
     MaxExpire time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
     MaxPinAttempts int `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
