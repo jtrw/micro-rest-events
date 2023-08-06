@@ -68,6 +68,7 @@ func (s Server) routes() chi.Router {
     handler := event_handler.NewHandler(s.Repository.Connection)
 	router.Route("/api/v1", func(r chi.Router) {
 	    //r.Use(Authentication)
+	    r.Use(AuthenticationJwt)
 	    r.Use(Cors)
         r.Post("/events", handler.OnCreateEvent)
         r.Post("/events/{uuid}", handler.OnChangeEvent)

@@ -18,5 +18,6 @@ require (
 require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/go-pkgz/expirable-cache v0.1.0 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
 )
