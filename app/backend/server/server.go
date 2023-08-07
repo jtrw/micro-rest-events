@@ -1,23 +1,23 @@
 package server
 
 import (
-   "context"
-   "time"
-   "log"
-   "net/http"
-   "github.com/pkg/errors"
-   "github.com/didip/tollbooth/v7"
-   "github.com/didip/tollbooth_chi"
-   "github.com/go-chi/chi/v5"
-   "github.com/go-chi/chi/v5/middleware"
-   "github.com/go-chi/render"
-   "github.com/jtrw/go-rest"
-   repository "micro-rest-events/v1/app/backend/repository"
-   event_handler "micro-rest-events/v1/app/backend/handler"
+	"context"
+	"github.com/didip/tollbooth/v7"
+	"github.com/didip/tollbooth_chi"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
+	"github.com/jtrw/go-rest"
+	"github.com/pkg/errors"
+	"log"
+	event_handler "micro-rest-events/v1/app/backend/handler"
+	repository "micro-rest-events/v1/app/backend/repository"
+	"net/http"
+	"time"
 )
 
 type Server struct {
-    Port           string
+	Port           string
 	PinSize        int
 	MaxPinAttempts int
 	MaxExpire      time.Duration
@@ -25,15 +25,14 @@ type Server struct {
 	Secret         string
 	Version        string
 	Repository     repository.Repository
-
 }
 
 func (s Server) Run(ctx context.Context) error {
 	log.Printf("[INFO] activate rest server")
-    log.Printf("[INFO] Port: %s", s.Port)
+	log.Printf("[INFO] Port: %s", s.Port)
 
 	httpServer := &http.Server{
-		Addr:              ":"+s.Port,
+		Addr:              ":" + s.Port,
 		Handler:           s.routes(),
 		ReadHeaderTimeout: 5 * time.Second,
 		WriteTimeout:      30 * time.Second,
@@ -65,15 +64,16 @@ func (s Server) routes() chi.Router {
 	//router.Use(rest.AppInfo("events", "Jrtw", s.Version), rest.Ping)
 	router.Use(rest.Ping)
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
-    router.Use(middleware.Logger)
-    handler := event_handler.NewHandler(s.Repository.Connection)
+	router.Use(middleware.Logger)
+	handler := event_handler.NewHandler(s.Repository.Connection)
 	router.Route("/api/v1", func(r chi.Router) {
-	    //r.Use(Authentication)
-	    r.Use(AuthenticationJwt(s.Secret))
-	    r.Use(Cors)
-        r.Post("/events", handler.OnCreateEvent)
-        r.Post("/events/{uuid}", handler.OnChangeEvent)
-        r.Get("/events/users/{id}", handler.OnGetEventsByUserId)
+		//r.Use(Authentication)
+		r.Use(AuthenticationJwt(s.Secret))
+		r.Use(Cors)
+		r.Post("/events", handler.OnCreateEvent)
+		r.Post("/events/{uuid}", handler.OnChangeEvent)
+		r.Get("/events/users/{id}", handler.OnGetEventsByUserId)
+		r.Post("/events/{uuid}/seen", handler.OnSetSeen)
 	})
 
 	router.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
