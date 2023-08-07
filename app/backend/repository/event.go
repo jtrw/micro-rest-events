@@ -77,9 +77,25 @@ func (repo EventRepository) GetByUserId(userId int) (Event, error) {
 }
 
 
-func (repo EventRepository) Change(uuid string, e Event) (int64, error) {
+func (repo EventRepository) ChangeStatus(uuid string, e Event) (int64, error) {
     sql := `UPDATE "events" SET status = $1, message = $2, updated_at = $3 WHERE uuid = $4`
     res, err := repo.Connection.Exec(sql, e.Status, e.Message, time.Now(), uuid)
+
+    if err != nil {
+        return 0, errors.New("Can't update row")
+    }
+    count, err := res.RowsAffected()
+
+    if err != nil {
+        return 0, err
+    }
+
+    return count, nil
+}
+
+func (repo EventRepository) ChangeIsSeen(uuid string) (int64, error) {
+    sql := `UPDATE "events" SET is_seen = true, updated_at = $1 WHERE uuid = $2`
+    res, err := repo.Connection.Exec(sql, time.Now(), uuid)
 
     if err != nil {
         return 0, errors.New("Can't update row")
