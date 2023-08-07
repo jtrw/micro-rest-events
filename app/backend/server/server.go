@@ -22,6 +22,7 @@ type Server struct {
 	MaxPinAttempts int
 	MaxExpire      time.Duration
 	WebRoot        string
+	Secret         string
 	Version        string
 	Repository     repository.Repository
 
@@ -68,7 +69,7 @@ func (s Server) routes() chi.Router {
     handler := event_handler.NewHandler(s.Repository.Connection)
 	router.Route("/api/v1", func(r chi.Router) {
 	    //r.Use(Authentication)
-	    r.Use(AuthenticationJwt)
+	    r.Use(AuthenticationJwt(s.Secret))
 	    r.Use(Cors)
         r.Post("/events", handler.OnCreateEvent)
         r.Post("/events/{uuid}", handler.OnChangeEvent)

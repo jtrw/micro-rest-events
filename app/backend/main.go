@@ -52,6 +52,7 @@ func main() {
         MaxExpire:      opts.MaxExpire,
         MaxPinAttempts: opts.MaxPinAttempts,
         WebRoot:        opts.WebRoot,
+        Secret:         opts.Secret,
         Version:        revision,
         Repository:     repo,
     }
