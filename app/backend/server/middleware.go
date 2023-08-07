@@ -44,7 +44,14 @@ func AuthenticationJwt(next http.Handler) http.Handler {
             return
         }
 
+        if !token.Valid {
+            w.Write([]byte("Not valid token"));
+            w.WriteHeader(http.StatusUnauthorized)
+            return
+        }
+
         claims, ok := token.Claims.(jwt.MapClaims)
+
         if !ok {
             w.Write([]byte("couldn't parse claims"));
             w.WriteHeader(http.StatusUnauthorized)
