@@ -32,7 +32,7 @@ func AuthenticationJwt(secret string) func(http.Handler) http.Handler {
 
             token, _ := jwt.Parse(r.Header["Api-Token"][0], func(token *jwt.Token) (interface{}, error) {
                 if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-                    return nil, fmt.Errorf("There was an error in parsing")
+                    return nil, fmt.Errorf("[ERROR] There was an error in parsing")
                 }
 
                 return []byte(secret), nil
@@ -45,8 +45,7 @@ func AuthenticationJwt(secret string) func(http.Handler) http.Handler {
             }
 
             if !token.Valid {
-                w.Write([]byte("Not valid token"));
-                w.WriteHeader(http.StatusUnauthorized)
+                w.WriteHeader(http.StatusForbidden)
                 return
             }
 

@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
@@ -46,7 +45,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("[ERROR] %s", err)
+		log.Printf("[ERROR] %s", err)
 		render.Status(r, http.StatusNotFound)
 		return
 	}
@@ -54,7 +53,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(b, &requestData)
 
 	if err != nil {
-		fmt.Println("Error while decoding the data", err.Error())
+		log.Println("[ERROR] Error while decoding the data", err.Error())
 		return
 	}
 	uuid := uuid.New().String()
@@ -88,13 +87,13 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("[ERROR] %s", err)
+		log.Printf("[ERROR] %s", err)
 	}
 
 	err = json.Unmarshal(b, &requestData)
 
 	if err != nil {
-		fmt.Println("Error while decoding the data", err.Error())
+		log.Println("Error while decoding the data", err.Error())
 	}
 	var message string = ""
 	if requestData["message"] != nil {
