@@ -6,7 +6,6 @@ import (
    "log"
    "time"
    "github.com/jessevdk/go-flags"
-   "fmt"
    server "micro-rest-events/v1/app/backend/server"
    "micro-rest-events/v1/app/backend/repository"
    "github.com/joho/godotenv"
@@ -36,7 +35,7 @@ type Options struct {
 var revision string
 
 func main() {
-    fmt.Printf("Micro rest events %s\n", revision)
+    log.Printf("Micro rest events %s\n", revision)
 
     var opts Options
     parser := flags.NewParser(&opts, flags.Default)
