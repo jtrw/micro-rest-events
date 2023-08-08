@@ -1,6 +1,7 @@
 package main
 
 import (
+    "os"
    "context"
    "log"
    "time"
@@ -10,6 +11,8 @@ import (
    "micro-rest-events/v1/app/backend/repository"
    "github.com/joho/godotenv"
    _ "github.com/lib/pq"
+   "os/signal"
+   "syscall"
 )
 
 type Server struct {
@@ -27,14 +30,13 @@ type Options struct {
     MaxExpire time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
     MaxPinAttempts int `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
     WebRoot string `long:"web" env:"WEB" default:"/" description:"web ui location"`
+    Dsn string `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
 }
 
 var revision string
 
 func main() {
-    if err := godotenv.Load(); err != nil {
-        panic("No .env file found")
-    }
+    fmt.Printf("Micro rest events %s\n", revision)
 
     var opts Options
     parser := flags.NewParser(&opts, flags.Default)
@@ -43,7 +45,29 @@ func main() {
         log.Fatal(err)
     }
 
-    fmt.Printf("Micro rest events %s\n", revision)
+    if opts.Dsn == "" {
+        if err := godotenv.Load(); err != nil {
+            panic("No .env file found")
+        }
+    } else {
+        os.Setenv("POSTGRES_DSN", opts.Dsn)
+    }
+
+    ctx, cancel := context.WithCancel(context.Background())
+    go func() {
+        if x := recover(); x != nil {
+            log.Printf("[WARN] run time panic:\n%v", x)
+            panic(x)
+        }
+
+        // catch signal and invoke graceful termination
+        stop := make(chan os.Signal, 1)
+        signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+        <-stop
+        log.Printf("[WARN] interrupt signal")
+        cancel()
+    }()
+
     repo := repository.ConnectDB()
 
     srv := server.Server{
@@ -56,7 +80,7 @@ func main() {
         Version:        revision,
         Repository:     repo,
     }
-    if err := srv.Run(context.Background()); err != nil {
+    if err := srv.Run(ctx); err != nil {
         log.Printf("[ERROR] failed, %+v", err)
     }
 }

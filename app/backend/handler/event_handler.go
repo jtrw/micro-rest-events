@@ -11,6 +11,7 @@ import (
 	event "micro-rest-events/v1/app/backend/repository"
 	"net/http"
 	"strconv"
+	"log"
 )
 
 const STATUS_NEW = "new"
@@ -62,13 +63,15 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 	rec := event.Event{
 		Uuid:   uuid,
 		UserId: userId,
-		Type:   STATUS_NEW,
-		Status: requestData["status"].(string),
+		Status: STATUS_NEW,
+		Type: requestData["type"].(string),
 	}
 
 	eventRepository := event.NewEventRepository(h.Connection)
 	err = eventRepository.Create(rec)
+
 	if err != nil {
+	    log.Println(err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": err})
 		return

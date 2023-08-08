@@ -2,9 +2,9 @@ package repository
 
 import (
     "database/sql"
-    //"log"
+    "log"
     "errors"
-   "fmt"
+   //"fmt"
    "time"
   // "strconv"
 )
@@ -32,9 +32,8 @@ func NewEventRepository(conn *sql.DB) *EventRepository {
 func (repo EventRepository) Create(e Event) error {
      sql := `INSERT INTO "events"("uuid", "user_id", "type", "status") VALUES($1, $2, $3, $4)`
         _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status)
-
+     log.Println(err)
      if err != nil {
-        fmt.Println(err)
         return errors.New("Couldn't create event")
      }
 
