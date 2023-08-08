@@ -102,6 +102,22 @@ func Test_main(t *testing.T) {
         assert.NoError(t, err)
         assert.Equal(t, 200, resp.StatusCode)
     }
+
+    {
+        resp, err := http.Post(
+                fmt.Sprintf("http://localhost:%d/api/v1/events/%s", port, uuid),
+                "application/json",
+                strings.NewReader(`{"fake": "done"}`))
+
+        require.NoError(t, err)
+        defer resp.Body.Close()
+        respBody, err := io.ReadAll(resp.Body)
+        var requestData JSON
+        err = json.Unmarshal(respBody, &requestData)
+        assert.NoError(t, err)
+        assert.Equal(t, "error", requestData["status"])
+        assert.Equal(t, 400, resp.StatusCode)
+    }
 }
 
 func waitForHTTPServerStart(port int) {
