@@ -100,6 +100,11 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 		message = requestData["message"].(string)
 	}
 
+    if requestData["status"] == nil {
+        render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Status is required"})
+        return
+    }
 	rec := event.Event{
 		Status:  requestData["status"].(string),
 		Message: message,
