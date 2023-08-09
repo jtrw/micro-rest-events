@@ -21,6 +21,8 @@ jobs:
           POSTGRES_USER: event
           POSTGRES_PORT: 5433
           POSTGRESQL_DB: micro_events
+        ports:
+          - 5433:5433
     
     steps:
     - uses: actions/checkout@v3
