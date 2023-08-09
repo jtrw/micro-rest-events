@@ -33,7 +33,7 @@ func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.Status(r, http.StatusNotFound)
-		render.JSON(w, r, JSON{"status": "ok"})
+		render.JSON(w, r, JSON{"status": "not_found", "message": "Not Found"})
 		return
 	}
 
@@ -56,6 +56,13 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 		log.Println("[ERROR] Error while decoding the data", err.Error())
 		return
 	}
+
+	if requestData["type"] == nil || requestData["user_id"] == nil {
+	    render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Not found type or user_id"})
+        return
+	}
+
 	uuid := uuid.New().String()
 
 	userId := int(requestData["user_id"].(float64))
@@ -70,7 +77,6 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 	err = eventRepository.Create(rec)
 
 	if err != nil {
-	    log.Println(err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": err})
 		return
