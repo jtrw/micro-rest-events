@@ -10,9 +10,18 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: 9ju17UI6^Hvk
+          POSTGRES_USER: event
+          POSTGRES_PORT: 5433
+          POSTGRESQL_DB: micro_events
+    
     steps:
     - uses: actions/checkout@v3
 
