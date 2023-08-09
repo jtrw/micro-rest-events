@@ -19,6 +19,8 @@ import (
 
 type JSON map[string]interface{}
 
+var jwtToken string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjM0NX0.0JbSlLakm5e2a4zkpTDsVGRCV_YMvyK7lWga4C6t8WQ"
+
 func Test_main(t *testing.T) {
 	port := 40000 + int(rand.Int31n(10000))
 	os.Args = []string{"app", "--secret=123", "--port=" + strconv.Itoa(port), "--dsn=host=localhost port=5433 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
@@ -44,9 +46,12 @@ func Test_main(t *testing.T) {
 
 	waitForHTTPServerStart(port)
 	time.Sleep(time.Second)
+    client := &http.Client{}
 
 	{
-		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/ping", port))
+	    url := fmt.Sprintf("http://localhost:%d/ping", port)
+	    req, err := getRequest(url)
+        resp, err := client.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		assert.Equal(t, 200, resp.StatusCode)
@@ -59,10 +64,9 @@ func Test_main(t *testing.T) {
 	var userId int = int(rand.Int31n(1000))
 
 	{
-		resp, err := http.Post(
-			fmt.Sprintf("http://localhost:%d/api/v1/events", port),
-			"application/json",
-			strings.NewReader(`{"user_id": `+fmt.Sprint(userId)+`,"type": "test"}`))
+        url :=  fmt.Sprintf("http://localhost:%d/api/v1/events", port)
+        req, err := postRequest(url, `{"user_id": `+fmt.Sprint(userId)+`,"type": "test"}`)
+        resp, err := client.Do(req)
 
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -76,10 +80,9 @@ func Test_main(t *testing.T) {
 	}
 
 	{
-        resp, err := http.Post(
-                    fmt.Sprintf("http://localhost:%d/api/v1/events/%s", port, uuid),
-                    "application/json",
-                    strings.NewReader(`{"status": "done"}`))
+        url :=  fmt.Sprintf("http://localhost:%d/api/v1/events/%s", port, uuid)
+        req, err := postRequest(url, `{"status": "done"}`)
+        resp, err := client.Do(req)
 
         require.NoError(t, err)
         defer resp.Body.Close()
@@ -92,7 +95,9 @@ func Test_main(t *testing.T) {
 	}
 
 	{
-        resp, err := http.Get(fmt.Sprintf("http://localhost:%d/api/v1/events/users/%d", port, userId))
+        url := fmt.Sprintf("http://localhost:%d/api/v1/events/users/%d", port, userId)
+        req, err := getRequest(url)
+        resp, err := client.Do(req)
 
         require.NoError(t, err)
         defer resp.Body.Close()
@@ -104,10 +109,9 @@ func Test_main(t *testing.T) {
     }
 
     {
-        resp, err := http.Post(
-                fmt.Sprintf("http://localhost:%d/api/v1/events/%s", port, uuid),
-                "application/json",
-                strings.NewReader(`{"fake": "done"}`))
+        url :=  fmt.Sprintf("http://localhost:%d/api/v1/events/%s", port, uuid)
+        req, err := postRequest(url, `{"fake": "done"}`)
+        resp, err := client.Do(req)
 
         require.NoError(t, err)
         defer resp.Body.Close()
@@ -118,6 +122,19 @@ func Test_main(t *testing.T) {
         assert.Equal(t, "error", requestData["status"])
         assert.Equal(t, 400, resp.StatusCode)
     }
+}
+
+func getRequest(url string) (*http.Request, error) {
+    req, err := http.NewRequest("GET", url, nil)
+    req.Header.Add("Api-Token", jwtToken)
+    return req, err
+}
+
+func postRequest(url string, data string) (*http.Request, error) {
+    req, err := http.NewRequest("POST", url, strings.NewReader(data))
+    req.Header.Add("Content-Type", "application/json")
+    req.Header.Add("Api-Token", jwtToken)
+    return req, err
 }
 
 func waitForHTTPServerStart(port int) {

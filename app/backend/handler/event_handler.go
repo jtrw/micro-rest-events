@@ -95,16 +95,18 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error while decoding the data", err.Error())
 	}
+
+	if requestData["status"] == nil {
+        render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Status is required"})
+        return
+    }
+
 	var message string = ""
 	if requestData["message"] != nil {
 		message = requestData["message"].(string)
 	}
 
-    if requestData["status"] == nil {
-        render.Status(r, http.StatusBadRequest)
-        render.JSON(w, r, JSON{"status": "error", "message": "Status is required"})
-        return
-    }
 	rec := event.Event{
 		Status:  requestData["status"].(string),
 		Message: message,
