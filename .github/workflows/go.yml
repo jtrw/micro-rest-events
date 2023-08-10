@@ -23,15 +23,16 @@ jobs:
           POSTGRESQL_DB: micro_events
         ports:
           - 5433:5433
-
-    script:
-      - sleep 5
-      - creatdb -h localhost -U event micro_events
-      - psql -h localhost -U event -d micro_events -f ./app/migrations/init.up.sql
-
+    
     steps:
     - uses: actions/checkout@v3
-
+    
+    - name: Database Init
+      run: |
+        sleep 5
+        creatdb -h localhost -U event micro_events
+        psql -h localhost -U event -d micro_events -f ./app/migrations/init.up.sql
+        
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
