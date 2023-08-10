@@ -34,6 +34,12 @@ jobs:
 
     - name: checkout
       uses: actions/checkout@v3
+      
+    - name: Install golang-migrate
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
+        sudo mv migrate.linux-amd64 /usr/bin/
+        which migrate
 
     - name: Test
       run: go mod tidy && go test -v ./app/backend -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov
