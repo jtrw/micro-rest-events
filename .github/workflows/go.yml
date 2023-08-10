@@ -30,7 +30,7 @@ jobs:
     - name: Database Init
       run: |
         sleep 5
-        creatdb -h localhost -U event micro_events
+        createdb -h localhost -U event micro_events
         psql -h localhost -U event -d micro_events -f ./app/migrations/init.up.sql
         
     - name: Set up Go
