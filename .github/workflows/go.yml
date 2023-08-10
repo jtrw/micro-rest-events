@@ -32,7 +32,7 @@ jobs:
       run: |
         sleep 5
         PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events
-        la -la
+        ls -la
         PGPASSWORD=9ju17UI6^Hvk psql -h localhost -U event -d micro_events -f ./migrations/init.up.sql
         
     - name: Set up Go
