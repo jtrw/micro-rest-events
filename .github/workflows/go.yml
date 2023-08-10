@@ -18,6 +18,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: 9ju17UI6^Hvk
+          PGPASSWORD: 9ju17UI6^Hvk
           POSTGRES_USER: event
           POSTGRES_PORT: 5433
           POSTGRESQL_DB: micro_events
@@ -30,7 +31,7 @@ jobs:
     - name: Database Init
       run: |
         sleep 5
-        createdb -h localhost -U event micro_events
+        PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events
         psql -h localhost -U event -d micro_events -f ./app/migrations/init.up.sql
         
     - name: Set up Go
