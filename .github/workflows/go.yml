@@ -38,8 +38,11 @@ jobs:
     - name: Install golang-migrate
       run: |
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
-        sudo mv migrate.linux-amd64 /usr/bin/
+        sudo mv migrate.linux-amd64 /usr/bin/migrate
         which migrate
+
+    - name: Run migrations
+      run: make migrateup
 
     - name: Test
       run: go mod tidy && go test -v ./app/backend -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov
