@@ -51,3 +51,7 @@ setup: setup-enqueue ## setup-db build environment and initialize composer and p
 .PHONY: clean
 clean: ## Clear build vendor report folders
 	rm -rf build/ vendor/ var/
+
+.PHONY: migrate
+migrate: ## run migrations
+	migrate -database $(DB_URL) -path /migrations up
