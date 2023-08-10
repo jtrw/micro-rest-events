@@ -53,7 +53,7 @@ jobs:
    #   run: make migrateup
 
     - name: Test
-      run: go mod tidy && go test -v ./app/backend -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov
+      run: go mod tidy && go test -v ./app/backend -timeout=60s -coverprofile=$GITHUB_WORKSPACE/coverage.out -covermode=atomic
 
     - name: Build
       run:  go mod vendor && go build -v -mod=vendor
