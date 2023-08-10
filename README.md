@@ -1,5 +1,7 @@
 # rest-events
 
+[![codecov](https://codecov.io/gh/jtrw/micro-rest-events/branch/master/graph/badge.svg?token=MXC3NMIN2V)](https://codecov.io/gh/jtrw/micro-rest-events)
+
 
 ## DB
 
