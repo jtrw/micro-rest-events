@@ -55,3 +55,7 @@ clean: ## Clear build vendor report folders
 .PHONY: migrate
 migrate: ## run migrations
 	migrate -database $(DB_URL) -path /migrations up
+
+shared-service-setup-db:
+	docker-compose --project-directory $(CWD)/ -f $(CWD)/docker-compose-shared-services.yml exec postgres bash -c "if PGPASSWORD=$(POSTGRES_PASSWORD) psql -U $(POSTGRES_USER) -w -lqtA | cut -d \| -f 1 | grep $(POSTGRESQL_DB); then echo DB $(POSTGRESQL_DB) already exists; else PGPASSWORD=$(POSTGRES_PASSWORD) createdb -U $(POSTGRES_USER) -w $(POSTGRESQL_DB); fi"
+
