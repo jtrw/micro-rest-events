@@ -49,8 +49,8 @@ jobs:
         sudo mv migrate.linux-amd64 /usr/bin/migrate
         which migrate
 
-    - name: Run migrations
-      run: make migrateup
+   # - name: Run migrations
+   #   run: make migrateup
 
     - name: Test
       run: go mod tidy && go test -v ./app/backend -timeout=60s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov
