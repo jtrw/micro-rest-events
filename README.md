@@ -19,3 +19,6 @@ POST - `/events/{uuid}/seen/` Mark event as seen
 POST - `/events/{uuid}/status/in_progress` Change status of event in progress
 POST - `/events/{uuid}/status/done` Change status of event done
 POST - `/events/{uuid}/status/error` Change status of event error
+
+## Test
+`go test -v app/backend -coverprofile=coverage.out && go tool cover -html=coverage.out -o coverage.html`
