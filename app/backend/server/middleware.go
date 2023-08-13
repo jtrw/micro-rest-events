@@ -7,18 +7,18 @@ import (
 	//"time"
 )
 
-func Authentication(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-	    token := r.Header.Get("Api-Token")
-	    if token != "111" {
-	        w.Write([]byte("Unauthorized"));
-	        w.WriteHeader(http.StatusUnauthorized)
-        	return
-
-	    }
-	    next.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(fn)
+func Authentication(token string) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        fn := func(w http.ResponseWriter, r *http.Request) {
+            apiToken := r.Header.Get("Api-Token")
+            if apiToken != token {
+                w.Write([]byte("Unauthorized"));
+                w.WriteHeader(http.StatusUnauthorized)
+                return
+            }
+        }
+        return http.HandlerFunc(fn)
+    }
 }
 
 func AuthenticationJwt(secret string) func(http.Handler) http.Handler {
