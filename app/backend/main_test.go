@@ -124,6 +124,51 @@ func Test_main(t *testing.T) {
     }
 }
 
+
+func Test_Fail_Auth(t *testing.T) {
+	port := 40000 + int(rand.Int31n(10000))
+	os.Args = []string{"app", "--secret=123", "--port=" + strconv.Itoa(port), "--dsn=host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
+
+	done := make(chan struct{})
+	go func() {
+		<-done
+		e := syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+		require.NoError(t, e)
+	}()
+
+	finished := make(chan struct{})
+	go func() {
+		main()
+		close(finished)
+	}()
+
+	// defer cleanup because require check below can fail
+	defer func() {
+		close(done)
+		<-finished
+	}()
+
+	waitForHTTPServerStart(port)
+	time.Sleep(time.Second)
+    client := &http.Client{}
+
+	{
+	    url := fmt.Sprintf("http://localhost:%d/api/v1/events/users/1", port)
+	    req, _ := getRequest(url)
+
+	    req, err := http.NewRequest("GET", url, nil)
+        req.Header.Add("Api-Token", "InvalidToken")
+
+        resp, err := client.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, 200, resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		assert.NoError(t, err)
+		assert.Equal(t, "Invalid token", string(body))
+	}
+}
+
 func getRequest(url string) (*http.Request, error) {
     req, err := http.NewRequest("GET", url, nil)
     req.Header.Add("Api-Token", jwtToken)
