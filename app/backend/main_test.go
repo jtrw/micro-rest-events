@@ -162,10 +162,10 @@ func Test_Fail_Auth(t *testing.T) {
         resp, err := client.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		assert.Equal(t, 200, resp.StatusCode)
+		assert.Equal(t, 401, resp.StatusCode)
 		body, err := io.ReadAll(resp.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, "Invalid token", string(body))
+		assert.Equal(t, "Invalid token\n", string(body))
 	}
 }
 
