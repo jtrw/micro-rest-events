@@ -1,61 +1,9 @@
 package server
 
 import (
-    "fmt"
 	"net/http"
-	"github.com/golang-jwt/jwt"
-	"log"
 	//"time"
 )
-
-func AuthenticationJwt(secret string, condition func(claims map[string]interface{}) error) func(http.Handler) http.Handler {
-    return func(next http.Handler) http.Handler {
-        fn := func(w http.ResponseWriter, r *http.Request) {
-            if r.Header["Api-Token"] == nil {
-                w.Write([]byte("Can not find token in header"));
-                w.WriteHeader(http.StatusUnauthorized)
-                return
-            }
-
-            token, _ := jwt.Parse(r.Header["Api-Token"][0], func(token *jwt.Token) (interface{}, error) {
-                if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-                    return nil, fmt.Errorf("[ERROR] There was an error in parsing")
-                }
-
-                return []byte(secret), nil
-            })
-
-            if token == nil {
-                w.Write([]byte("Invalid token"));
-                w.WriteHeader(http.StatusUnauthorized)
-                return
-            }
-
-            if !token.Valid {
-                w.WriteHeader(http.StatusForbidden)
-                return
-            }
-
-            claims, ok := token.Claims.(jwt.MapClaims)
-
-            if !ok {
-                w.Write([]byte("couldn't parse claims"));
-                w.WriteHeader(http.StatusUnauthorized)
-                return
-            }
-
-            if err := condition(claims); err != nil {
-                log.Println(err.Error())
-                w.Write([]byte(err.Error()));
-                w.WriteHeader(http.StatusUnauthorized)
-                return
-            }
-
-            next.ServeHTTP(w, r)
-        }
-        return http.HandlerFunc(fn)
-    }
-}
 
 func Cors(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
