@@ -21,8 +21,8 @@ github.com/jessevdk/go-flags v1.5.0 h1:1jKYvbxEjfUl0fmqTCOfonvskHHXMjBySTLW4y9LF
 github.com/jessevdk/go-flags v1.5.0/go.mod h1:Fw0T6WPc1dYxT4mKEZRfG5kJhaTDP9pj1c2EWnYs/m4=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
-github.com/jtrw/go-rest v1.0.1 h1:CzeAkqt3kf3wrRRYw+Nl0XJFalhtlZgpicSssbJPAhI=
-github.com/jtrw/go-rest v1.0.1/go.mod h1:4p6qPR92S08vxG+TogNrcEOjue6HorNh69TVxTP/e+A=
+github.com/jtrw/go-rest v1.1.0 h1:pbUFRSKNbP9CCk2LL4Z9qAZNIdfjjkESqrFLpwDdDCs=
+github.com/jtrw/go-rest v1.1.0/go.mod h1:Xmptg8VTbxXnrx6KbQHLxg9rdRgPpoEiW+sqF2GNNgY=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=

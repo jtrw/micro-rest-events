@@ -68,9 +68,8 @@ func (s Server) routes() chi.Router {
 	router.Use(middleware.Logger)
 	handler := event_handler.NewHandler(s.Repository.Connection)
 	router.Route("/api/v1", func(r chi.Router) {
-		//r.Use(Authentication)
-		r.Use(AuthenticationJwt(s.Secret, func(claims map[string]interface{}) error {
-		     if claims["user_id"] == nil {
+		r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
+		    if claims["user_id"] == nil {
 		        return fmt.Errorf("user_id not found")
             }
             return nil
