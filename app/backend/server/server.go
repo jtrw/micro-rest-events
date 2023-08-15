@@ -14,6 +14,7 @@ import (
 	repository "micro-rest-events/v1/app/backend/repository"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 type Server struct {
@@ -68,7 +69,12 @@ func (s Server) routes() chi.Router {
 	handler := event_handler.NewHandler(s.Repository.Connection)
 	router.Route("/api/v1", func(r chi.Router) {
 		//r.Use(Authentication)
-		r.Use(AuthenticationJwt(s.Secret))
+		r.Use(AuthenticationJwt(s.Secret, func(claims map[string]interface{}) error {
+		     if claims["user_id"] == nil {
+		        return fmt.Errorf("user_id not found")
+            }
+            return nil
+        }))
 		r.Use(Cors)
 		r.Post("/events", handler.OnCreateEvent)
 		r.Post("/events/{uuid}", handler.OnChangeEvent)

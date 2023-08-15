@@ -4,10 +4,11 @@ import (
     "fmt"
 	"net/http"
 	"github.com/golang-jwt/jwt"
+	"log"
 	//"time"
 )
 
-func AuthenticationJwt(secret string) func(http.Handler) http.Handler {
+func AuthenticationJwt(secret string, condition func(claims map[string]interface{}) error) func(http.Handler) http.Handler {
     return func(next http.Handler) http.Handler {
         fn := func(w http.ResponseWriter, r *http.Request) {
             if r.Header["Api-Token"] == nil {
@@ -43,11 +44,13 @@ func AuthenticationJwt(secret string) func(http.Handler) http.Handler {
                 return
             }
 
-            if claims["user_id"] == nil {
-                w.Write([]byte("user_id not found"));
+            if err := condition(claims); err != nil {
+                log.Println(err.Error())
+                w.Write([]byte(err.Error()));
                 w.WriteHeader(http.StatusUnauthorized)
                 return
             }
+
             next.ServeHTTP(w, r)
         }
         return http.HandlerFunc(fn)
