@@ -49,13 +49,13 @@ func (s Server) Run(ctx context.Context) error {
 		}
 	}()
 
-	err := httpServer.ListenAndServe()
+    err := httpServer.ListenAndServe()
 	log.Printf("[WARN] http server terminated, %s", err)
 
 	if err != http.ErrServerClosed {
 		return errors.Wrap(err, "server failed")
 	}
-	return nil
+	return err
 }
 
 func (s Server) routes() chi.Router {
