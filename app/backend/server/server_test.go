@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	//"io"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"fmt"
@@ -35,4 +35,18 @@ func TestRest_EventCreate(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	assert.True(t, time.Since(st) <= time.Millisecond*30)
+}
+
+func TestRest_RobotsCheck(t *testing.T) {
+    srv := Server{Port: "54009", Version: "v1", Secret: "12345"}
+
+	ts := httptest.NewServer(srv.routes())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/robots.txt")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+    assert.NoError(t, err)
+    assert.Equal(t, "User-agent: *\nDisallow: /api/\n", string(body))
 }

@@ -82,7 +82,7 @@ func (s Server) routes() chi.Router {
 	})
 
 	router.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-		render.PlainText(w, r, "User-agent: *\nDisallow: /api/\nDisallow: /show/\n")
+		render.PlainText(w, r, "User-agent: *\nDisallow: /api/\n")
 	})
 
 	return router
