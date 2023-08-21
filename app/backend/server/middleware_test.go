@@ -42,4 +42,13 @@ func TestMiddlewareCors(t *testing.T) {
         headers := resp.Header.Get("Access-Control-Allow-Headers")
         assert.True(t, strings.Contains(headers, "X-Requested-With"))
     }
+
+    {
+        req, err := http.NewRequest("OPTIONS", ts.URL+"/ping", nil)
+        require.NoError(t, err)
+        resp, err := http.DefaultClient.Do(req)
+        require.NoError(t, err)
+        assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+        defer resp.Body.Close()
+    }
 }
