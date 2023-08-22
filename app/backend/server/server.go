@@ -18,7 +18,7 @@ import (
 )
 
 type Server struct {
-	Port           string
+	Listen         string
 	PinSize        int
 	MaxPinAttempts int
 	MaxExpire      time.Duration
@@ -30,10 +30,10 @@ type Server struct {
 
 func (s Server) Run(ctx context.Context) error {
 	log.Printf("[INFO] activate rest server")
-	log.Printf("[INFO] Port: %s", s.Port)
+	log.Printf("[INFO] Listen: %s", s.Listen)
 
 	httpServer := &http.Server{
-		Addr:              ":" + s.Port,
+		Addr:              s.Listen,
 		Handler:           s.routes(),
 		ReadHeaderTimeout: 5 * time.Second,
 		WriteTimeout:      30 * time.Second,
