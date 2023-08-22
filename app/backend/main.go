@@ -19,11 +19,11 @@ type Server struct {
 	MaxPinAttempts int
 	WebRoot        string
 	Version        string
-	Port           string
+	Listen         string
 }
 
 type Options struct {
-    Port string `short:"p" long:"port" env:"SERVER_PORT" default:"8080" description:"Port web server"`
+    Listen string `short:"l" long:"listen" env:"LISTEN" default:"localhost:8080" description:"listen address"`
     Secret string `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
     PinSize int `long:"pinszie" env:"PIN_SIZE" default:"5" description:"pin size"`
     MaxExpire time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
@@ -70,7 +70,7 @@ func main() {
     repo := repository.ConnectDB()
 
     srv := server.Server{
-        Port:           opts.Port,
+        Listen:         opts.Listen,
         PinSize:        opts.PinSize,
         MaxExpire:      opts.MaxExpire,
         MaxPinAttempts: opts.MaxPinAttempts,

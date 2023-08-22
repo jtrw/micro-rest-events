@@ -17,14 +17,14 @@ import (
 func TestRest_Run(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	srv := Server{Port: "54009", Version: "v1"}
+	srv := Server{Listen: "localhost:54009", Version: "v1"}
 	err := srv.Run(ctx)
 	require.Error(t, err)
 	assert.Equal(t, "http: Server closed", err.Error())
 }
 
 func TestRest_EventCreate(t *testing.T) {
-    srv := Server{Port: "54009", Version: "v1", Secret: "12345"}
+    srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345"}
 
 	ts := httptest.NewServer(srv.routes())
 	defer ts.Close()
@@ -38,7 +38,7 @@ func TestRest_EventCreate(t *testing.T) {
 }
 
 func TestRest_RobotsCheck(t *testing.T) {
-    srv := Server{Port: "54009", Version: "v1", Secret: "12345"}
+    srv := Server{Listen: "localhost:54009", Version: "v1", Secret: "12345"}
 
 	ts := httptest.NewServer(srv.routes())
 	defer ts.Close()

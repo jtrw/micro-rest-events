@@ -24,7 +24,7 @@ var jwtTokenWithoutUserId string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub3R
 
 func Test_main(t *testing.T) {
 	port := 40000 + int(rand.Int31n(10000))
-	os.Args = []string{"app", "--secret=123", "--port=" + strconv.Itoa(port), "--dsn=host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
+	os.Args = []string{"app", "--secret=123", "--listen=" + "localhost:"+strconv.Itoa(port), "--dsn=host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
 
 	done := make(chan struct{})
 	go func() {
@@ -128,7 +128,7 @@ func Test_main(t *testing.T) {
 
 func Test_Fail_Auth(t *testing.T) {
 	port := 40000 + int(rand.Int31n(10000))
-	os.Args = []string{"app", "--secret=123", "--port=" + strconv.Itoa(port), "--dsn=host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
+	os.Args = []string{"app", "--secret=123", "--listen=" + "localhost:"+strconv.Itoa(port), "--dsn=host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
 
 	done := make(chan struct{})
 	go func() {
@@ -185,6 +185,29 @@ func Test_Fail_Auth(t *testing.T) {
         assert.Equal(t, "user_id not found\n", string(body))
     }
 }
+
+// func Test_Fail_Run_UnknownFlag(t *testing.T) {
+// 	os.Args = []string{"app", "--secret=123", "--unknown=1111111"}
+//
+// 	done := make(chan struct{})
+// 	go func() {
+// 		<-done
+// 		e := syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+// 		require.NoError(t, e)
+// 	}()
+//
+// 	finished := make(chan struct{})
+// 	go func() {
+// 		main()
+// 		close(finished)
+// 	}()
+//
+// 	// defer cleanup because require check below can fail
+// 	defer func() {
+// 		close(done)
+// 		<-finished
+// 	}()
+// }
 
 func getRequest(url string) (*http.Request, error) {
     req, err := http.NewRequest("GET", url, nil)
