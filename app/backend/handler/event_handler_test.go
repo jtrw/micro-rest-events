@@ -5,7 +5,6 @@ import (
     "testing"
     "net/http/httptest"
     "micro-rest-events/v1/app/backend/repository"
-    event_handler "micro-rest-events/v1/app/backend/handler"
     "github.com/stretchr/testify/assert"
     //"github.com/stretchr/testify/require"
 )
@@ -13,7 +12,7 @@ func TestOnGetEventsByUserIdNotFound(t *testing.T) {
 
     t.Setenv("POSTGRES_DSN", "host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable")
     repo := repository.ConnectDB()
-    h := event_handler.NewHandler(repo.Connection)
+    h := NewHandler(repo.Connection)
     // Create a request to pass to our handler. We don't have any query parameters for now, so we'll
     // pass 'nil' as the third parameter.
     req, err := http.NewRequest("GET", "/events/users/9999999", nil)
