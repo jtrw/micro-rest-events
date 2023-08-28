@@ -1,6 +1,7 @@
 package repository
 
 import (
+    "database/sql"
 	"github.com/stretchr/testify/mock"
 	event "micro-rest-events/v1/app/backend/repository"
 )
@@ -9,8 +10,8 @@ type MockEventRepository struct {
 	mock.Mock
 }
 
-func NewEventRepository(conn *sql.DB) *EventRepository {
-	return &EventRepository{}
+func NewEventRepository(conn *sql.DB) *MockEventRepository {
+	return &MockEventRepository{}
 }
 
 func (m *MockEventRepository) Create(e event.Event) error {
