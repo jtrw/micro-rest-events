@@ -19,10 +19,15 @@ type JSON map[string]interface{}
 
 type Handler struct {
 	Connection *sql.DB
+	EventRepository *event.EventRepository
 }
 
 func NewHandler(conn *sql.DB) Handler {
-	return Handler{Connection: conn}
+	return Handler{Connection: conn, EventRepository: event.NewEventRepository(conn)}
+}
+
+func (h Handler) NewEventRepository() *event.EventRepository {
+    return event.NewEventRepository(h.Connection)
 }
 
 func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
@@ -73,10 +78,11 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 		Type: requestData["type"].(string),
 	}
 
-	eventRepository := event.NewEventRepository(h.Connection)
+	eventRepository := h.NewEventRepository()
 	err = eventRepository.Create(rec)
 
 	if err != nil {
+	    log.Println(err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": err})
 		return

@@ -7,6 +7,7 @@ require (
 	github.com/didip/tollbooth_chi v0.0.0-20220719025231-d662a7f6928f
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/render v1.0.3
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.5.1
@@ -23,6 +24,6 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.1.0 // indirect
-	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
+	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
