@@ -42,12 +42,41 @@ func TestOnCreateEvent(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func TestOnCreateEvent_EmptyPayload(t *testing.T) {
+	handler := Handler{}
 
-func TestOnGetEventsByUserIdNotFound(t *testing.T) {
-    //t.Setenv("POSTGRES_DSN", "host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable")
-    //repo := repository.ConnectDB()
-    //h := NewHandler(repo.Connection)
+	payload := map[string]interface{}{
+		"type":    "",
+		"user_id": nil,
+	}
 
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequest("POST", "/api/v1/events", bytes.NewReader(payloadBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateEvent(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestOnCreateEvent_BadJsonRequest(t *testing.T) {
+	handler := Handler{}
+
+	req, err := http.NewRequest("POST", "/api/v1/events", bytes.NewReader([]byte("Bad json request")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateEvent(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestOnGetEventsByUserId(t *testing.T) {
     mockRepo := new(mock_repository.MockEventRepository)
     mockEvent := repository.Event{
         Uuid:   "test_uuid",
@@ -62,9 +91,9 @@ func TestOnGetEventsByUserIdNotFound(t *testing.T) {
     }
 
      r := chi.NewRouter()
-    r.Get("/get-events/{id}", h.OnGetEventsByUserId)
+    r.Get("/api/v1/events/users/{id}", h.OnGetEventsByUserId)
 
-    req, err := http.NewRequest("GET", "/get-events/123", nil)
+    req, err := http.NewRequest("GET", "/api/v1/events/users/123", nil)
     if err != nil {
         t.Fatal(err)
     }
@@ -73,6 +102,33 @@ func TestOnGetEventsByUserIdNotFound(t *testing.T) {
     r.ServeHTTP(rr, req)
 
     assert.Equal(t, http.StatusOK, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}
+
+func TestOnGetEventsByUserId_NotFound(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockEvent := repository.Event{}
+    mockRepo.On("GetByUserId", 123).Return(mockEvent, fmt.Errorf("Event not found"))
+
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+
+     r := chi.NewRouter()
+    r.Get("/api/v1/events/users/{id}", h.OnGetEventsByUserId)
+
+    req, err := http.NewRequest("GET", "/api/v1/events/users/123", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusNotFound, rr.Code)
+
+    mockRepo.AssertExpectations(t)
 }
 
 func TestOnChangeEvent(t *testing.T) {
@@ -95,6 +151,87 @@ func TestOnChangeEvent(t *testing.T) {
     r.ServeHTTP(rr, req)
 
     assert.Equal(t, http.StatusOK, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}
+
+func TestOnChangeEvent_BadPayload(t *testing.T) {
+    r := chi.NewRouter()
+    h := Handler{}
+    r.Post("/api/v1/events/{uuid}", h.OnChangeEvent)
+
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader("Bad payload"))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestOnChangeEvent_StatusNotFound(t *testing.T) {
+    r := chi.NewRouter()
+    h := Handler{}
+    r.Post("/api/v1/events/{uuid}", h.OnChangeEvent)
+
+    payload := `{"status": nil, "message": "new_message"}`
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader(payload))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestOnChangeEvent_NotFound(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo.On("ChangeStatus", "test_uuid", mock.AnythingOfType("repository.Event")).Return(int64(0), nil)
+
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/{uuid}", h.OnChangeEvent)
+
+    payload := `{"status": "new_status", "message": "new_message"}`
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader(payload))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusNotFound, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}
+
+func TestOnChangeEvent_RepositoryReturnError(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo.On("ChangeStatus", "test_uuid", mock.AnythingOfType("repository.Event")).Return(int64(0), fmt.Errorf("Event not found"))
+
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/{uuid}", h.OnChangeEvent)
+
+    payload := `{"status": "new_status", "message": "new_message"}`
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader(payload))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
 
     mockRepo.AssertExpectations(t)
 }
