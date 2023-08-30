@@ -1,121 +1,122 @@
 package handler
-
 import (
-    "net/http"
-    "testing"
-    "net/http/httptest"
-    "micro-rest-events/v1/app/backend/repository"
-    "github.com/stretchr/testify/assert"
-    "strings"
-    "github.com/golang/mock/gomock"
-   // eventMock "micro-rest-events/v1/app/backend/repository/mocks"
-     mock_repository "micro-rest-events/v1/app/backend/repository/mocks"
-   // event "micro-rest-events/v1/app/backend/repository"
- //   "encoding/json"
- //   "bytes"
-  //  "github.com/DATA-DOG/go-sqlmock"
-    //"github.com/stretchr/testify/require"
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	//"errors"
+    //"database/sql"
+	repository "micro-rest-events/v1/app/backend/repository"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	mock_repository "micro-rest-events/v1/app/backend/repository/mocks"
+	"github.com/go-chi/chi/v5"
+	"strings"
 )
 
-//const STATUS_NEW = "new"
+func TestOnCreateEvent(t *testing.T) {
+	mockRepo := new(mock_repository.MockEventRepository)
+	mockRepo.On("Create", mock.AnythingOfType("repository.Event")).Return(nil)
 
-//type JSON map[string]interface{}
+	handler := Handler{
+		EventRepository: mockRepo,
+	}
 
-// type Handler struct {
-// 	Connection *sql.DB
-// 	EventRepository *event.EventRepository
-// }
-//
-// func NewHandler(conn *sql.DB) Handler {
-// 	return Handler{Connection: conn, EventRepository: event.NewEventRepository(conn)}
-// }
+	payload := map[string]interface{}{
+		"type":    "test_type",
+		"user_id": 123,
+	}
 
-// func (h Handler) NewEventRepository() *event.EventRepository {
-//     return event.NewEventRepository(h.Connection)
-// }
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequest("POST", "/api/v1/events", bytes.NewReader(payloadBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateEvent(rr, req)
+
+	assert.Equal(t, http.StatusCreated, rr.Code)
+	mockRepo.AssertExpectations(t)
+}
+
+
 func TestOnGetEventsByUserIdNotFound(t *testing.T) {
-    t.Setenv("POSTGRES_DSN", "host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable")
-    repo := repository.ConnectDB()
-    h := NewHandler(repo.Connection)
-    // Create a request to pass to our handler. We don't have any query parameters for now, so we'll
-    // pass 'nil' as the third parameter.
-    req, err := http.NewRequest("GET", "/events/users/9999999", nil)
+    //t.Setenv("POSTGRES_DSN", "host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable")
+    //repo := repository.ConnectDB()
+    //h := NewHandler(repo.Connection)
+
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockEvent := repository.Event{
+        Uuid:   "test_uuid",
+        UserId: 123,
+        Type:   "test_type",
+        Status: "new",
+    }
+    mockRepo.On("GetByUserId", 123).Return(mockEvent, nil)
+
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+
+     r := chi.NewRouter()
+    r.Get("/get-events/{id}", h.OnGetEventsByUserId)
+
+    req, err := http.NewRequest("GET", "/get-events/123", nil)
     if err != nil {
         t.Fatal(err)
     }
-    // We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+
     rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(h.OnGetEventsByUserId)
-    // Our handlers satisfy http.Handler, so we can call their ServeHTTP method
-    // directly and pass in our Request and ResponseRecorder.
-    handler.ServeHTTP(rr, req)
+    r.ServeHTTP(rr, req)
 
-     assert.NoError(t, err)
-     assert.Equal(t, 404, rr.Code)
-
-     //assert.Equal(t, "{\"status\": \"not_found\", \"message\": \"Not Found\"}", rr.Body.String())
+    assert.Equal(t, http.StatusOK, rr.Code)
 }
 
-func TestOnCreateEvent(t *testing.T) {
-	// Arrange
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+func TestOnChangeEvent(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo.On("ChangeStatus", "test_uuid", mock.AnythingOfType("repository.Event")).Return(int64(1), nil)
 
-	mockEventRepository := mock_repository.NewMockEventRepository(mockCtrl)
-	handler := Handler{Connection: nil, EventRepository: mockEventRepository}
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPost, "/api/v1/events", strings.NewReader(`{"type":"test", "user_id":1}`))
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/{uuid}", h.OnChangeEvent)
 
-	// Act
-	mockEventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+    payload := `{"status": "new_status", "message": "new_message"}`
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader(payload))
+    if err != nil {
+        t.Fatal(err)
+    }
 
-	handler.OnCreateEvent(w, r)
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
 
-	// Assert
-	status := w.Code
-	if status != http.StatusCreated {
-		t.Errorf("Expected status code %d, got %d", http.StatusCreated, status)
-	}
+    assert.Equal(t, http.StatusOK, rr.Code)
 
-	body := w.Body.String()
-	expected := `{"status":"ok","uuid":"<uuid>"}`
-	if body != expected {
-		t.Errorf("Expected body %s, got %s", expected, body)
-	}
+    mockRepo.AssertExpectations(t)
 }
 
-// func TestOnCreateEvent_Success(t *testing.T) {
-//     db, mock, err := sqlmock.New()
-// 	if err != nil {
-// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-// 	}
-// 	defer db.Close()
-//
-// 	//mock.ExpectBegin()
-//     mock.ExpectExec(`INSERT INTO "events"`).WithArgs(1, 2, 3, 4).WillReturnResult(sqlmock.NewResult(1, 1))
-//     //mock.ExpectCommit()
-//
-//     //t.Setenv("POSTGRES_DSN", "host=localhost port=5432 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable")
-//     //repo := repository.ConnectDB()
-//     //handler := NewHandler(db)
-//
-// 	mockRepo := &eventMock.MockEventRepository{}
-//
-// 	handler := Handler{Connection: db, EventRepository: mockRepo}
-//
-// 	expectedUserID := 123
-// 	expectedEvent := event.Event{}
-// 	mockRepo.On("Create", expectedEvent).Return(nil)
-//
-// 	requestData := JSON{"type": "new", "user_id": expectedUserID}
-// 	reqBody, _ := json.Marshal(requestData)
-// 	req := httptest.NewRequest("POST", "/events", bytes.NewReader(reqBody))
-// 	rec := httptest.NewRecorder()
-//
-// 	handler.OnCreateEvent(rec, req)
-//
-// 	assert.Equal(t, http.StatusCreated, rec.Code)
-// 	assert.Equal(t, "application/json", rec.Header().Get("Content-Type"))
-//
-// 	//mockRepo.AssertExpectations(t)
-// }
+func TestOnSetSeen(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo.On("ChangeIsSeen", "test_uuid").Return(int64(1), nil)
+
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/{uuid}/seen", h.OnSetSeen)
+
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid/seen", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusOK, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}

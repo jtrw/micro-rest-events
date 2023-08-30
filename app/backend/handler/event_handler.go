@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"io"
-	event "micro-rest-events/v1/app/backend/repository"
+	repository "micro-rest-events/v1/app/backend/repository"
 	"net/http"
 	"strconv"
 	"log"
@@ -19,30 +19,19 @@ type JSON map[string]interface{}
 
 type Handler struct {
 	Connection *sql.DB
-	EventRepository *event.EventRepository
+	EventRepository repository.EventRepositoryInterface
 }
 
-func NewHandler(conn *sql.DB) Handler {
-	return Handler{Connection: conn, EventRepository: event.NewEventRepository(conn)}
+
+func NewHandler(rep repository.EventRepositoryInterface) Handler {
+	return Handler{EventRepository: rep}
 }
+// func NewHandler(conn *sql.DB) Handler {
+// 	return Handler{Connection: conn, EventRepository: repository.NewEventRepository(conn)}
+// }
 
-func (h Handler) NewEventRepository() *event.EventRepository {
-    return event.NewEventRepository(h.Connection)
-}
-
-func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, _ := strconv.Atoi(chi.URLParam(r, "id"))
-
-	eventRepository := event.NewEventRepository(h.Connection)
-	row, err := eventRepository.GetByUserId(userId)
-
-	if err != nil {
-		render.Status(r, http.StatusNotFound)
-		render.JSON(w, r, JSON{"status": "not_found", "message": "Not Found"})
-		return
-	}
-
-	render.JSON(w, r, JSON{"status": "ok", "data": row})
+func (h Handler) NewEventRepository() repository.EventRepositoryInterface {
+    return repository.NewEventRepository(h.Connection)
 }
 
 func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
@@ -71,14 +60,14 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 	uuid := uuid.New().String()
 
 	userId := int(requestData["user_id"].(float64))
-	rec := event.Event{
+	rec := repository.Event{
 		Uuid:   uuid,
 		UserId: userId,
 		Status: STATUS_NEW,
 		Type: requestData["type"].(string),
 	}
 
-	eventRepository := h.NewEventRepository()
+	eventRepository := h.EventRepository
 	err = eventRepository.Create(rec)
 
 	if err != nil {
@@ -90,6 +79,21 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, JSON{"status": "ok", "uuid": uuid})
+}
+
+func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
+	userId, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
+    eventRepository := h.EventRepository
+	row, err := eventRepository.GetByUserId(userId)
+
+	if err != nil {
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, JSON{"status": "not_found", "message": "Not Found"})
+		return
+	}
+
+	render.JSON(w, r, JSON{"status": "ok", "data": row})
 }
 
 func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
@@ -119,11 +123,12 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 		message = requestData["message"].(string)
 	}
 
-	rec := event.Event{
+	rec := repository.Event{
 		Status:  requestData["status"].(string),
 		Message: message,
 	}
-	eventRepository := event.NewEventRepository(h.Connection)
+
+	eventRepository := h.EventRepository
 	count, err := eventRepository.ChangeStatus(uuid, rec)
 
 	if count == 0 {
@@ -145,7 +150,7 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 func (h Handler) OnSetSeen(w http.ResponseWriter, r *http.Request) {
 	uuid := chi.URLParam(r, "uuid")
 
-	eventRepository := event.NewEventRepository(h.Connection)
+    eventRepository := h.EventRepository
 	count, err := eventRepository.ChangeIsSeen(uuid)
 
 	if count == 0 {
