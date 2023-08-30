@@ -5,19 +5,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"io"
 	//"errors"
     //"database/sql"
 	repository "micro-rest-events/v1/app/backend/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	mock_repository "micro-rest-events/v1/app/backend/repository/mocks"
+	mock_event "micro-rest-events/v1/app/backend/repository/mocks"
 	"github.com/go-chi/chi/v5"
 	"strings"
 	"fmt"
 )
 
 func TestOnCreateEvent(t *testing.T) {
-	mockRepo := new(mock_repository.MockEventRepository)
+	mockRepo := new(mock_event.MockEventRepository)
 	mockRepo.On("Create", mock.AnythingOfType("repository.Event")).Return(nil)
 
 	handler := Handler{
@@ -77,7 +78,7 @@ func TestOnCreateEvent_BadJsonRequest(t *testing.T) {
 }
 
 func TestOnGetEventsByUserId(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockEvent := repository.Event{
         Uuid:   "test_uuid",
         UserId: 123,
@@ -107,7 +108,7 @@ func TestOnGetEventsByUserId(t *testing.T) {
 }
 
 func TestOnGetEventsByUserId_NotFound(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockEvent := repository.Event{}
     mockRepo.On("GetByUserId", 123).Return(mockEvent, fmt.Errorf("Event not found"))
 
@@ -132,7 +133,7 @@ func TestOnGetEventsByUserId_NotFound(t *testing.T) {
 }
 
 func TestOnChangeEvent(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockRepo.On("ChangeStatus", "test_uuid", mock.AnythingOfType("repository.Event")).Return(int64(1), nil)
 
     r := chi.NewRouter()
@@ -176,7 +177,7 @@ func TestOnChangeEvent_StatusNotFound(t *testing.T) {
     h := Handler{}
     r.Post("/api/v1/events/{uuid}", h.OnChangeEvent)
 
-    payload := `{"status": nil, "message": "new_message"}`
+    payload := `{"message": "new_message"}`
     req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader(payload))
     if err != nil {
         t.Fatal(err)
@@ -184,12 +185,17 @@ func TestOnChangeEvent_StatusNotFound(t *testing.T) {
 
     rr := httptest.NewRecorder()
     r.ServeHTTP(rr, req)
-
     assert.Equal(t, http.StatusBadRequest, rr.Code)
+
+    var requestData JSON
+    respBody, err := io.ReadAll(rr.Body)
+    err = json.Unmarshal(respBody, &requestData)
+    assert.NoError(t, err)
+    assert.Equal(t, requestData["message"], "Status is required")
 }
 
 func TestOnChangeEvent_NotFound(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockRepo.On("ChangeStatus", "test_uuid", mock.AnythingOfType("repository.Event")).Return(int64(0), nil)
 
     r := chi.NewRouter()
@@ -213,7 +219,7 @@ func TestOnChangeEvent_NotFound(t *testing.T) {
 }
 
 func TestOnChangeEvent_RepositoryReturnError(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockRepo.On("ChangeStatus", "test_uuid", mock.AnythingOfType("repository.Event")).Return(int64(0), fmt.Errorf("Event not found"))
 
     r := chi.NewRouter()
@@ -237,7 +243,7 @@ func TestOnChangeEvent_RepositoryReturnError(t *testing.T) {
 }
 
 func TestOnSetSeen(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockRepo.On("ChangeIsSeen", "test_uuid").Return(int64(1), nil)
 
     r := chi.NewRouter()
@@ -260,7 +266,7 @@ func TestOnSetSeen(t *testing.T) {
 }
 
 func TestOnSetSeenNotFound(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockRepo.On("ChangeIsSeen", "test_uuid").Return(int64(0), nil)
 
     r := chi.NewRouter()
@@ -283,7 +289,7 @@ func TestOnSetSeenNotFound(t *testing.T) {
 }
 
 func TestOnSetSeenError(t *testing.T) {
-    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo := new(mock_event.MockEventRepository)
     mockRepo.On("ChangeIsSeen", "test_uuid").Return(int64(0), fmt.Errorf("Some error"))
 
     r := chi.NewRouter()
