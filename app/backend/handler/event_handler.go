@@ -48,6 +48,8 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println("[ERROR] Error while decoding the data", err.Error())
+		render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Error while decoding the data"})
 		return
 	}
 
@@ -103,13 +105,17 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("[ERROR] %s", err)
+        render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Error read the data"})
+        return
 	}
 
 	err = json.Unmarshal(b, &requestData)
 
 	if err != nil {
-		log.Println("Error while decoding the data", err.Error())
+	    render.Status(r, http.StatusBadRequest)
+	    render.JSON(w, r, JSON{"status": "error", "message": "Error while decoding the data"})
+	    return
 	}
 
 	if requestData["status"] == nil {
@@ -131,16 +137,16 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 	eventRepository := h.EventRepository
 	count, err := eventRepository.ChangeStatus(uuid, rec)
 
+    if err != nil {
+        render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": err})
+    }
+
 	if count == 0 {
 		// Check if the row not exists
 		render.Status(r, http.StatusNotFound)
 		render.JSON(w, r, JSON{"status": "error", "message": "Not Found"})
 		return
-	}
-
-	if err != nil {
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, JSON{"status": "error", "message": err})
 	}
 
 	render.Status(r, http.StatusOK)
