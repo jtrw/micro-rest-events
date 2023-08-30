@@ -13,6 +13,7 @@ import (
 	mock_repository "micro-rest-events/v1/app/backend/repository/mocks"
 	"github.com/go-chi/chi/v5"
 	"strings"
+	"fmt"
 )
 
 func TestOnCreateEvent(t *testing.T) {
@@ -117,6 +118,52 @@ func TestOnSetSeen(t *testing.T) {
     r.ServeHTTP(rr, req)
 
     assert.Equal(t, http.StatusOK, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}
+
+func TestOnSetSeenNotFound(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo.On("ChangeIsSeen", "test_uuid").Return(int64(0), nil)
+
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/{uuid}/seen", h.OnSetSeen)
+
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid/seen", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusNotFound, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}
+
+func TestOnSetSeenError(t *testing.T) {
+    mockRepo := new(mock_repository.MockEventRepository)
+    mockRepo.On("ChangeIsSeen", "test_uuid").Return(int64(0), fmt.Errorf("Some error"))
+
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/{uuid}/seen", h.OnSetSeen)
+
+    req, err := http.NewRequest("POST", "/api/v1/events/test_uuid/seen", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
 
     mockRepo.AssertExpectations(t)
 }
