@@ -12,6 +12,7 @@ import (
 	"log"
 	event_handler "micro-rest-events/v1/app/backend/handler"
 	repository "micro-rest-events/v1/app/backend/repository"
+	event "micro-rest-events/v1/app/backend/repository"
 	"net/http"
 	"time"
 	"fmt"
@@ -66,7 +67,8 @@ func (s Server) routes() chi.Router {
 	router.Use(rest.Ping)
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
-	handler := event_handler.NewHandler(s.Repository.Connection)
+	er := event.NewEventRepository(s.Repository.Connection)
+	handler := event_handler.NewHandler(er)
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
 		    if claims["user_id"] == nil {

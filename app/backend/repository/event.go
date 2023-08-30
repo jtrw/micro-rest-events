@@ -13,6 +13,13 @@ type EventRepository struct {
     Connection  *sql.DB
 }
 
+type EventRepositoryInterface interface {
+    Create(e Event) error
+    GetOne(uuid string) (Event, error)
+    GetByUserId(userId int) (Event, error)
+    ChangeStatus(uuid string, e Event) (int64, error)
+    ChangeIsSeen(uuid string) (int64, error)
+}
 
 type Event struct {
     Uuid string
@@ -23,7 +30,7 @@ type Event struct {
     IsSeen bool
 }
 
-func NewEventRepository(conn *sql.DB) *EventRepository {
+func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
 	return &EventRepository{
 		Connection: conn,
 	}
