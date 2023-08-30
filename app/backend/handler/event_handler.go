@@ -153,16 +153,16 @@ func (h Handler) OnSetSeen(w http.ResponseWriter, r *http.Request) {
     eventRepository := h.EventRepository
 	count, err := eventRepository.ChangeIsSeen(uuid)
 
+    if err != nil {
+        render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": err})
+    }
+
 	if count == 0 {
 		// Check if the row not exists
 		render.Status(r, http.StatusNotFound)
 		render.JSON(w, r, JSON{"status": "error", "message": "Not Found"})
 		return
-	}
-
-	if err != nil {
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, JSON{"status": "error", "message": err})
 	}
 
 	render.Status(r, http.StatusOK)
