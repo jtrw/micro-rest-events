@@ -77,6 +77,32 @@ func TestOnCreateEvent_BadJsonRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+func TestOnCreateEvent_RepositoryError(t *testing.T) {
+	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Create", mock.AnythingOfType("repository.Event")).Return(fmt.Errorf("Unexpected error"))
+
+	handler := Handler{
+		EventRepository: mockRepo,
+	}
+
+	payload := map[string]interface{}{
+		"type":    "test_type",
+		"user_id": 123,
+	}
+
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequest("POST", "/api/v1/events", bytes.NewReader(payloadBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateEvent(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockRepo.AssertExpectations(t)
+}
+
 func TestOnGetEventsByUserId(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)
     mockEvent := repository.Event{
