@@ -50,3 +50,30 @@ func TestRest_RobotsCheck(t *testing.T) {
     assert.NoError(t, err)
     assert.Equal(t, "User-agent: *\nDisallow: /api/\n", string(body))
 }
+
+func TestAuthenticationJwtMiddleware_StatusUnauthorized(t *testing.T) {
+    var jwtToken string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.WKQfGgHiRhXdkdz6Qy90gMQhYf3uK-GMeyAQBEs1EbQ"
+	srv := Server{
+		Listen:     "127.0.0.1:8080",
+		Secret:     "1234567890",
+		Version:    "1.0",
+	}
+
+	r := srv.routes()
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	// Створення запиту
+	req, err := http.NewRequest("GET", ts.URL+"/api/v1/events/users/1", nil)
+	assert.NoError(t, err)
+
+	// Додавання заголовка з JWT токеном (замініть на ваш токен)
+	req.Header.Add("Api-Token", jwtToken)
+
+	// Відправка запиту
+	resp, err := http.DefaultClient.Do(req)
+	assert.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode) // Перевірка коду статусу
+}

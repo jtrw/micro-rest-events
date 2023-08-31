@@ -22,14 +22,9 @@ type Handler struct {
 	EventRepository repository.EventRepositoryInterface
 }
 
-
 func NewHandler(rep repository.EventRepositoryInterface) Handler {
 	return Handler{EventRepository: rep}
 }
-//
-// func (h Handler) NewEventRepository() repository.EventRepositoryInterface {
-//     return repository.NewEventRepository(h.Connection)
-// }
 
 func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 	var requestData JSON
