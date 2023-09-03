@@ -27,7 +27,7 @@ FROM scratch
 
 COPY --from=backend /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=backend /echo-http /srv/echo-http
+COPY --from=backend /rest-events /srv/rest-events
 
 EXPOSE 8080
 WORKDIR /srv
