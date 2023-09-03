@@ -59,3 +59,7 @@ migrate: ## run migrations
 shared-service-setup-db:
 	docker-compose --project-directory $(CWD)/ -f $(CWD)/docker-compose-shared-services.yml exec postgres bash -c "if PGPASSWORD=$(POSTGRES_PASSWORD) psql -U $(POSTGRES_USER) -w -lqtA | cut -d \| -f 1 | grep $(POSTGRESQL_DB); then echo DB $(POSTGRESQL_DB) already exists; else PGPASSWORD=$(POSTGRES_PASSWORD) createdb -U $(POSTGRES_USER) -w $(POSTGRESQL_DB); fi"
 
+release:
+	docker build -f Dockerfile -t docker-rest-events .
+	docker run -d --name=docker-rest-events docker-rest-events
+
