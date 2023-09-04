@@ -5,7 +5,7 @@ export
 RUN_ARGS = $(filter-out $@,$(MAKECMDGOALS))
 
 include .make/utils.mk
-include .make/docker-compose-shared-services.mk
+#include .make/docker-compose-shared-services.mk
 
 .PHONY: install
 install: erase build start-all wait## clean current environment, recreate dependencies and spin up again;
@@ -56,10 +56,13 @@ clean: ## Clear build vendor report folders
 migrate: ## run migrations
 	migrate -database $(DB_URL) -path /migrations up
 
+.PHONY: shared-service-setup-db
 shared-service-setup-db:
 	docker-compose --project-directory $(CWD)/ -f $(CWD)/docker-compose-shared-services.yml exec postgres bash -c "if PGPASSWORD=$(POSTGRES_PASSWORD) psql -U $(POSTGRES_USER) -w -lqtA | cut -d \| -f 1 | grep $(POSTGRESQL_DB); then echo DB $(POSTGRESQL_DB) already exists; else PGPASSWORD=$(POSTGRES_PASSWORD) createdb -U $(POSTGRES_USER) -w $(POSTGRESQL_DB); fi"
 
+.PHONY: release
 release:
-	docker build -f Dockerfile -t docker-rest-events .
-	docker run -d --name=docker-rest-events docker-rest-events
+	docker build -f Dockerfile -t docker-rest-events --build-arg GITHUB_SHA=$(GITHUB_SHA) .
+	docker rm -f docker-rest-events 2>/dev/null
+	docker run -d -p 127.0.0.1:8080:8080/tcp --env POSTGRES_DSN='$(POSTGRES_DSN)' docker-rest-events
 
