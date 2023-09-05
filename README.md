@@ -1,5 +1,5 @@
 # rest-events
-
+[![Build Status](https://github.com/jtrw/micro-rest-events/workflows/Go/badge.svg)](https://github.com/jtrw/micro-rest-events/actions)
 [![codecov](https://codecov.io/gh/jtrw/micro-rest-events/branch/master/graph/badge.svg?token=MXC3NMIN2V)](https://codecov.io/gh/jtrw/micro-rest-events)
 
 Simple rest service for events
