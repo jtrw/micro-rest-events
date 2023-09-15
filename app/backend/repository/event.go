@@ -16,14 +16,14 @@ type EventRepository struct {
 type EventRepositoryInterface interface {
     Create(e Event) error
     GetOne(uuid string) (Event, error)
-    GetByUserId(userId int) (Event, error)
+    GetByUserId(userId string) (Event, error)
     ChangeStatus(uuid string, e Event) (int64, error)
     ChangeIsSeen(uuid string) (int64, error)
 }
 
 type Event struct {
     Uuid string
-    UserId int
+    UserId string
 	Type string
 	Status string
     Message string
@@ -61,7 +61,7 @@ func (repo EventRepository) GetOne(uuid string) (Event, error) {
     return event, nil
 }
 
-func (repo EventRepository) GetByUserId(userId int) (Event, error) {
+func (repo EventRepository) GetByUserId(userId string) (Event, error) {
     event := Event{}
     sql := `SELECT uuid,
                    user_id,

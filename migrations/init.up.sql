@@ -1,7 +1,7 @@
 CREATE TABLE public.events (
     id serial PRIMARY KEY,
     uuid uuid NOT NULL,
-    user_id int NULL,
+    user_id varchar(50) NULL,
     "type" varchar(50) NULL,
     status varchar(50) NULL,
     message text NULL,

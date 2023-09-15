@@ -4,7 +4,6 @@ import (
     _ "database/sql"
     "github.com/golang/mock/gomock"
     "github.com/stretchr/testify/mock"
-    //"github.com/stretchr/testify/mock"
     _ "reflect"
     event "micro-rest-events/v1/app/backend/repository"
 )
@@ -23,7 +22,7 @@ func (m *MockEventRepository) GetOne(uuid string) (event.Event, error) {
     return args.Get(0).(event.Event), args.Error(1)
 }
 
-func (m *MockEventRepository) GetByUserId(userId int) (event.Event, error) {
+func (m *MockEventRepository) GetByUserId(userId string) (event.Event, error) {
     args := m.Called(userId)
     return args.Get(0).(event.Event), args.Error(1)
 }
