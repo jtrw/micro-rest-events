@@ -9,7 +9,6 @@ import (
 	"io"
 	repository "micro-rest-events/v1/app/backend/repository"
 	"net/http"
-	"strconv"
 	"log"
 )
 
@@ -53,7 +52,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	uuid := uuid.New().String()
 
-	userId := int(requestData["user_id"].(float64))
+	userId := requestData["user_id"].(string)
 	rec := repository.Event{
 		Uuid:   uuid,
 		UserId: userId,
@@ -76,7 +75,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	userId := chi.URLParam(r, "id")
 
     eventRepository := h.EventRepository
 	row, err := eventRepository.GetByUserId(userId)

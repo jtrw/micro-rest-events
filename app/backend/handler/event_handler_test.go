@@ -27,7 +27,7 @@ func TestOnCreateEvent(t *testing.T) {
 
 	payload := map[string]interface{}{
 		"type":    "test_type",
-		"user_id": 123,
+		"user_id": "123",
 	}
 
 	payloadBytes, _ := json.Marshal(payload)
@@ -87,7 +87,7 @@ func TestOnCreateEvent_RepositoryError(t *testing.T) {
 
 	payload := map[string]interface{}{
 		"type":    "test_type",
-		"user_id": 123,
+		"user_id": "123",
 	}
 
 	payloadBytes, _ := json.Marshal(payload)
@@ -107,11 +107,11 @@ func TestOnGetEventsByUserId(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)
     mockEvent := repository.Event{
         Uuid:   "test_uuid",
-        UserId: 123,
+        UserId: "123",
         Type:   "test_type",
         Status: "new",
     }
-    mockRepo.On("GetByUserId", 123).Return(mockEvent, nil)
+    mockRepo.On("GetByUserId", "123").Return(mockEvent, nil)
 
     h := Handler{
         EventRepository: mockRepo,
@@ -136,7 +136,7 @@ func TestOnGetEventsByUserId(t *testing.T) {
 func TestOnGetEventsByUserId_NotFound(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)
     mockEvent := repository.Event{}
-    mockRepo.On("GetByUserId", 123).Return(mockEvent, fmt.Errorf("Event not found"))
+    mockRepo.On("GetByUserId", "123").Return(mockEvent, fmt.Errorf("Event not found"))
 
     h := Handler{
         EventRepository: mockRepo,

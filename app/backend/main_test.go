@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"testing"
 	"time"
-
+    uuid_generate "github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -62,11 +62,12 @@ func Test_main(t *testing.T) {
 	}
 
 	var uuid string
-	var userId int = int(rand.Int31n(1000))
+
+	userId := uuid_generate.New().String()
 
 	{
         url :=  fmt.Sprintf("http://localhost:%d/api/v1/events", port)
-        req, err := postRequest(url, `{"user_id": `+fmt.Sprint(userId)+`,"type": "test"}`)
+        req, err := postRequest(url, `{"user_id": "`+fmt.Sprint(userId)+`","type": "test"}`)
         resp, err := client.Do(req)
 
 		require.NoError(t, err)
@@ -96,7 +97,7 @@ func Test_main(t *testing.T) {
 	}
 
 	{
-        url := fmt.Sprintf("http://localhost:%d/api/v1/events/users/%d", port, userId)
+        url := fmt.Sprintf("http://localhost:%d/api/v1/events/users/%s", port, userId)
         req, err := getRequest(url)
         resp, err := client.Do(req)
 
