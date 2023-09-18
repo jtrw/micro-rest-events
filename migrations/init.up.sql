@@ -5,6 +5,7 @@ CREATE TABLE public.events (
     "type" varchar(50) NULL,
     status varchar(50) NULL,
     caption varchar(155) NULL,
+    body text NULL,
     message text NULL,
     is_seen bool DEFAULT false,
     created_at timestamp(0) NOT NULL DEFAULT now(),
