@@ -58,6 +58,8 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 		UserId: userId,
 		Status: STATUS_NEW,
 		Type: requestData["type"].(string),
+		Caption: requestData["caption"].(string),
+		Body: requestData["body"].(string),
 	}
 
 	eventRepository := h.EventRepository

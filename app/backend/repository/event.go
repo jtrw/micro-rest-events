@@ -26,6 +26,7 @@ type Event struct {
     UserId string
 	Type string
 	Status string
+    Caption string
     Message string
     IsSeen bool
 }
@@ -37,10 +38,11 @@ func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
 }
 
 func (repo EventRepository) Create(e Event) error {
-     sql := `INSERT INTO "events"("uuid", "user_id", "type", "status") VALUES($1, $2, $3, $4)`
-     _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status)
-     log.Println(err)
-     log.Println(e.Uuid, e.UserId, e.Type, e.Status)
+     sql := `INSERT INTO "events"
+        ("uuid", "user_id", "type", "status", "caption", "body")
+        VALUES($1, $2, $3, $4, $5, $6)`
+     _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Caption, e.Body)
+
      if err != nil {
         return errors.New("Couldn't create event")
      }
@@ -50,9 +52,16 @@ func (repo EventRepository) Create(e Event) error {
 
 func (repo EventRepository) GetOne(uuid string) (Event, error) {
     event := Event{}
-    sql := `SELECT uuid, user_id, type, status, message, is_seen FROM "events" WHERE uuid = $1`
+    sql := `SELECT uuid,
+                   user_id,
+                   type,
+                   status,
+                   caption,
+                   message,
+                   is_seen
+            FROM "events" WHERE uuid = $1`
     row := repo.Connection.QueryRow(sql, uuid)
-    err := row.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Message, &event.IsSeen)
+    err := row.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen)
 
     if err != nil {
         return event, errors.New("Row Not Found")
@@ -67,6 +76,7 @@ func (repo EventRepository) GetByUserId(userId string) (Event, error) {
                    user_id,
                    type,
                    status,
+                   caption,
                    message,
                    is_seen
             FROM "events"
@@ -74,7 +84,7 @@ func (repo EventRepository) GetByUserId(userId string) (Event, error) {
             ORDER BY created_at ASC LIMIT 1`
 
     row := repo.Connection.QueryRow(sql, userId)
-    err := row.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Message, &event.IsSeen)
+    err := row.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen)
 
     if err != nil {
         return event, errors.New("Row Not Found")
