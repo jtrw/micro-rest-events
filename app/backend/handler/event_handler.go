@@ -52,27 +52,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	uuid := uuid.New().String()
 
-    if requestData["caption"] == nil {
-        requestData["caption"] = ""
-    }
-
-    if requestData["body"] == nil {
-        requestData["body"] = ""
-    }
-
-	userId := requestData["user_id"].(string)
-	rec := repository.Event{
-		Uuid:   uuid,
-		UserId: userId,
-		Status: STATUS_NEW,
-		Type: requestData["type"].(string),
-		Caption: requestData["caption"].(string),
-		Body: requestData["body"].(string),
-	}
-
-	eventRepository := h.EventRepository
-	err = eventRepository.Create(rec)
-
+    err = h.createOneEvent(uuid, requestData)
 	if err != nil {
 	    log.Println(err)
 		render.Status(r, http.StatusBadRequest)
@@ -82,6 +62,71 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, JSON{"status": "ok", "uuid": uuid})
+}
+
+func (h Handler) OnCreateBatchEvents(w http.ResponseWriter, r *http.Request) {
+	var requestData JSON
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("[ERROR] %s", err)
+		render.Status(r, http.StatusNotFound)
+		return
+	}
+
+	err = json.Unmarshal(b, &requestData)
+
+	if err != nil {
+		log.Println("[ERROR] Error while decoding the data", err.Error())
+		render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Error while decoding the data"})
+		return
+	}
+
+	if requestData["type"] == nil || requestData["users"] == nil {
+	    render.Status(r, http.StatusBadRequest)
+        render.JSON(w, r, JSON{"status": "error", "message": "Not found type or users"})
+        return
+	}
+    for _, user := range requestData["users"].([]interface{}) {
+        uuid := uuid.New().String()
+        requestData["user_id"] = user
+        err = h.createOneEvent(uuid, requestData)
+        if err != nil {
+            log.Println(err)
+            render.Status(r, http.StatusBadRequest)
+            render.JSON(w, r, JSON{"status": "error", "message": err})
+            return
+        }
+    }
+
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, JSON{"status": "ok"})
+}
+
+func (h Handler) createOneEvent(uuid string, requestData JSON) error {
+    eventRepository := h.EventRepository
+    userId := requestData["user_id"].(string)
+
+    if requestData["caption"] == nil {
+        requestData["caption"] = ""
+    }
+
+    if requestData["body"] == nil {
+        requestData["body"] = ""
+    }
+
+    rec := repository.Event{
+        Uuid:   uuid,
+        UserId: userId,
+        Status: STATUS_NEW,
+        Type: requestData["type"].(string),
+        Caption: requestData["caption"].(string),
+        Body: requestData["body"].(string),
+    }
+
+    err := eventRepository.Create(rec)
+    return err
 }
 
 func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
