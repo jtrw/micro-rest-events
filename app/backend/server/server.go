@@ -78,6 +78,7 @@ func (s Server) routes() chi.Router {
         }))
 		r.Use(Cors)
 		r.Post("/events", handler.OnCreateEvent)
+		r.Post("/events/batch", handler.OnCreateBatchEvents)
 		r.Post("/events/{uuid}", handler.OnChangeEvent)
 		r.Get("/events/users/{id}", handler.OnGetEventsByUserId)
 		r.Post("/events/{uuid}/seen", handler.OnSetSeen)
