@@ -2,10 +2,10 @@ package repository
 
 import (
     "database/sql"
-    "log"
     "errors"
    //"fmt"
    "time"
+   "log"
   // "strconv"
 )
 
@@ -27,6 +27,7 @@ type Event struct {
 	Type string
 	Status string
     Caption string
+    Body string
     Message string
     IsSeen bool
 }
@@ -44,6 +45,7 @@ func (repo EventRepository) Create(e Event) error {
      _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Caption, e.Body)
 
      if err != nil {
+        log.Println("[ERROR] Error while creating the event", err.Error())
         return errors.New("Couldn't create event")
      }
 
