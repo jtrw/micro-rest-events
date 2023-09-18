@@ -28,6 +28,8 @@ func TestOnCreateEvent(t *testing.T) {
 	payload := map[string]interface{}{
 		"type":    "test_type",
 		"user_id": "123",
+		"caption": "test_caption",
+		"body":    "test_body",
 	}
 
 	payloadBytes, _ := json.Marshal(payload)
@@ -88,6 +90,8 @@ func TestOnCreateEvent_RepositoryError(t *testing.T) {
 	payload := map[string]interface{}{
 		"type":    "test_type",
 		"user_id": "123",
+		"caption": "test_caption",
+		"body":    "test_body",
 	}
 
 	payloadBytes, _ := json.Marshal(payload)

@@ -52,6 +52,14 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	uuid := uuid.New().String()
 
+    if requestData["caption"] == nil {
+        requestData["caption"] = ""
+    }
+
+    if requestData["body"] == nil {
+        requestData["body"] = ""
+    }
+
 	userId := requestData["user_id"].(string)
 	rec := repository.Event{
 		Uuid:   uuid,
