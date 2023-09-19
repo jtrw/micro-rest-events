@@ -40,7 +40,7 @@ func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
 
 func (repo EventRepository) Create(e Event) error {
      sql := `INSERT INTO "events"
-        ("uuid", "user_id", "type", "status", "caption", "body")
+        ("uuid", "user_id", "type", "status", "caption", "message")
         VALUES($1, $2, $3, $4, $5, $6)`
      _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Caption, e.Body)
 
