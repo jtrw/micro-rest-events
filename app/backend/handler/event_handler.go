@@ -116,10 +116,14 @@ func (h Handler) createOneEvent(uuid string, requestData JSON) error {
         requestData["body"] = ""
     }
 
+    if requestData["status"] == nil {
+        requestData["status"] = STATUS_NEW
+    }
+
     rec := repository.Event{
         Uuid:   uuid,
         UserId: userId,
-        Status: STATUS_NEW,
+        Status: requestData["status"].(string),
         Type: requestData["type"].(string),
         Caption: requestData["caption"].(string),
         Body: requestData["body"].(string),
