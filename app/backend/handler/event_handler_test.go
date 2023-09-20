@@ -174,8 +174,6 @@ func TestOnGetEventsByUserId(t *testing.T) {
 func TestOnGetEventsByUserId_NotFound(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)
     var mockEvent []repository.Event
-    //mockEventOne := repository.Event{}
-    //mockEvent := []repository.Event{mockEventOne}
     mockRepo.On("GetAllByUserId", "123", mock.AnythingOfType("repository.Query")).Return(mockEvent, fmt.Errorf("Event not found"))
 
     h := Handler{

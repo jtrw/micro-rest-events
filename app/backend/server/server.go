@@ -82,6 +82,7 @@ func (s Server) routes() chi.Router {
 		r.Post("/events/{uuid}", handler.OnChangeEvent)
 		r.Get("/events/users/{id}", handler.OnGetEventsByUserId)
 		r.Post("/events/{uuid}/seen", handler.OnSetSeen)
+		r.Post("/events/change/batch", handler.OnChangeBatchEvents)
 	})
 
 	router.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
