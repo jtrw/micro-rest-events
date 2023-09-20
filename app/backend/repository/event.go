@@ -147,10 +147,19 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
 
 
 func (repo EventRepository) ChangeStatus(uuid string, e Event) (int64, error) {
-    sql := `UPDATE "events" SET status = $1, message = $2, updated_at = $3 WHERE uuid = $4`
-    res, err := repo.Connection.Exec(sql, e.Status, e.Message, time.Now(), uuid)
+    sql := `UPDATE "events" SET status = $1, updated_at = $2`
+
+
+    if len(e.Message) > 0 {
+        sql += `, message = '`+e.Message+`'`
+    }
+
+    sql += ` WHERE uuid = $3`
+
+    res, err := repo.Connection.Exec(sql, e.Status, time.Now(), uuid)
 
     if err != nil {
+        log.Println("[ERROR] Error while updating the event", err.Error())
         return 0, errors.New("Can't update row")
     }
     count, err := res.RowsAffected()
