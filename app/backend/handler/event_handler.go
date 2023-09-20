@@ -140,8 +140,8 @@ func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
 	row, err := eventRepository.GetByUserId(userId)
 
 	if err != nil {
-		render.Status(r, http.StatusNotFound)
-		render.JSON(w, r, JSON{"status": "not_found", "message": "Not Found"})
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, JSON{"status": "ok", "data": []string{}})
 		return
 	}
 
