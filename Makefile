@@ -5,7 +5,7 @@ export
 RUN_ARGS = $(filter-out $@,$(MAKECMDGOALS))
 
 include .make/utils.mk
-#include .make/docker-compose-shared-services.mk
+include .make/docker-compose-shared-services.mk
 
 .PHONY: install
 install: erase build start-all wait## clean current environment, recreate dependencies and spin up again;

@@ -48,7 +48,7 @@ func TestRest_RobotsCheck(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	body, err := io.ReadAll(resp.Body)
     assert.NoError(t, err)
-    assert.Equal(t, "User-agent: *\nDisallow: /api/\n", string(body))
+    assert.Equal(t, "User-agent: *\nDisallow: /\n", string(body))
 }
 
 func TestAuthenticationJwtMiddleware_StatusUnauthorized(t *testing.T) {

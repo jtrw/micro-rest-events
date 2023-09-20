@@ -6,8 +6,13 @@ import (
    //"fmt"
    "time"
    "log"
+   "strings"
   // "strconv"
 )
+
+type Query struct {
+    Statuses []string
+}
 
 type EventRepository struct {
     Connection  *sql.DB
@@ -16,7 +21,8 @@ type EventRepository struct {
 type EventRepositoryInterface interface {
     Create(e Event) error
     GetOne(uuid string) (Event, error)
-    GetByUserId(userId string) (Event, error)
+    GetOneByUserId(userId string) (Event, error)
+    GetAllByUserId(userId string, q Query) ([]Event, error)
     ChangeStatus(uuid string, e Event) (int64, error)
     ChangeIsSeen(uuid string) (int64, error)
 }
@@ -72,7 +78,7 @@ func (repo EventRepository) GetOne(uuid string) (Event, error) {
     return event, nil
 }
 
-func (repo EventRepository) GetByUserId(userId string) (Event, error) {
+func (repo EventRepository) GetOneByUserId(userId string) (Event, error) {
     event := Event{}
     sql := `SELECT uuid,
                    user_id,
@@ -93,6 +99,50 @@ func (repo EventRepository) GetByUserId(userId string) (Event, error) {
     }
 
     return event, nil
+}
+
+func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, error) {
+    sql := `SELECT uuid,
+                   user_id,
+                   type,
+                   status,
+                   caption,
+                   message,
+                   is_seen
+            FROM "events"
+            WHERE user_id = $1`
+
+    if q.Statuses != nil {
+        sql += ` AND status IN ('` + strings.Join(q.Statuses, `', '`) + `')`
+    }
+
+    sql += ` ORDER BY created_at ASC`
+
+    rows, err := repo.Connection.Query(sql, userId)
+
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var events []Event
+    for rows.Next() {
+        event := Event{}
+        err := rows.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen)
+        if err != nil {
+            return nil, err
+        }
+        events = append(events, event)
+    }
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+//     if err != nil {
+//         return event, errors.New("Row Not Found")
+//     }
+
+    return events, nil
 }
 
 
