@@ -140,13 +140,16 @@ func TestOnCreateEvent_RepositoryError(t *testing.T) {
 
 func TestOnGetEventsByUserId(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)
-    mockEvent := repository.Event{
+    mockEventOne := repository.Event{
         Uuid:   "test_uuid",
         UserId: "123",
         Type:   "test_type",
         Status: "new",
     }
-    mockRepo.On("GetByUserId", "123").Return(mockEvent, nil)
+
+    mockEvent := []repository.Event{mockEventOne}
+
+    mockRepo.On("GetAllByUserId", "123", mock.AnythingOfType("repository.Query")).Return(mockEvent, nil)
 
     h := Handler{
         EventRepository: mockRepo,
@@ -170,8 +173,10 @@ func TestOnGetEventsByUserId(t *testing.T) {
 
 func TestOnGetEventsByUserId_NotFound(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)
-    mockEvent := repository.Event{}
-    mockRepo.On("GetByUserId", "123").Return(mockEvent, fmt.Errorf("Event not found"))
+    var mockEvent []repository.Event
+    //mockEventOne := repository.Event{}
+    //mockEvent := []repository.Event{mockEventOne}
+    mockRepo.On("GetAllByUserId", "123", mock.AnythingOfType("repository.Query")).Return(mockEvent, fmt.Errorf("Event not found"))
 
     h := Handler{
         EventRepository: mockRepo,
@@ -192,6 +197,60 @@ func TestOnGetEventsByUserId_NotFound(t *testing.T) {
 
     mockRepo.AssertExpectations(t)
 }
+
+// func TestOnGetEventsByUserId(t *testing.T) {
+//     mockRepo := new(mock_event.MockEventRepository)
+//     mockEvent := repository.Event{
+//         Uuid:   "test_uuid",
+//         UserId: "123",
+//         Type:   "test_type",
+//         Status: "new",
+//     }
+//     mockRepo.On("GetByUserId", "123").Return(mockEvent, nil)
+//
+//     h := Handler{
+//         EventRepository: mockRepo,
+//     }
+//
+//      r := chi.NewRouter()
+//     r.Get("/api/v1/events/users/{id}", h.OnGetEventsByUserId)
+//
+//     req, err := http.NewRequest("GET", "/api/v1/events/users/123", nil)
+//     if err != nil {
+//         t.Fatal(err)
+//     }
+//
+//     rr := httptest.NewRecorder()
+//     r.ServeHTTP(rr, req)
+//
+//     assert.Equal(t, http.StatusOK, rr.Code)
+//
+//     mockRepo.AssertExpectations(t)
+// }
+// func TestOnGetEventsByUserId_NotFound(t *testing.T) {
+//     mockRepo := new(mock_event.MockEventRepository)
+//     mockEvent := repository.Event{}
+//     mockRepo.On("GetByUserId", "123").Return(mockEvent, fmt.Errorf("Event not found"))
+//
+//     h := Handler{
+//         EventRepository: mockRepo,
+//     }
+//
+//      r := chi.NewRouter()
+//     r.Get("/api/v1/events/users/{id}", h.OnGetEventsByUserId)
+//
+//     req, err := http.NewRequest("GET", "/api/v1/events/users/123", nil)
+//     if err != nil {
+//         t.Fatal(err)
+//     }
+//
+//     rr := httptest.NewRecorder()
+//     r.ServeHTTP(rr, req)
+//
+//     assert.Equal(t, http.StatusOK, rr.Code)
+//
+//     mockRepo.AssertExpectations(t)
+// }
 
 func TestOnChangeEvent(t *testing.T) {
     mockRepo := new(mock_event.MockEventRepository)

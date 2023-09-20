@@ -22,9 +22,14 @@ func (m *MockEventRepository) GetOne(uuid string) (event.Event, error) {
     return args.Get(0).(event.Event), args.Error(1)
 }
 
-func (m *MockEventRepository) GetByUserId(userId string) (event.Event, error) {
+func (m *MockEventRepository) GetOneByUserId(userId string) (event.Event, error) {
     args := m.Called(userId)
     return args.Get(0).(event.Event), args.Error(1)
+}
+
+func (m *MockEventRepository) GetAllByUserId(userId string, q event.Query) ([]event.Event, error) {
+    args := m.Called(userId, q)
+    return args.Get(0).([]event.Event), args.Error(1)
 }
 
 func (m *MockEventRepository) ChangeStatus(uuid string, e event.Event) (int64, error) {

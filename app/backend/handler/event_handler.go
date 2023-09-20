@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	repository "micro-rest-events/v1/app/backend/repository"
+	event "micro-rest-events/v1/app/backend/repository"
 	"net/http"
 	"log"
 )
@@ -15,6 +16,8 @@ import (
 const STATUS_NEW = "new"
 
 type JSON map[string]interface{}
+
+
 
 type Handler struct {
 	Connection *sql.DB
@@ -136,8 +139,43 @@ func (h Handler) createOneEvent(uuid string, requestData JSON) error {
 func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
 	userId := chi.URLParam(r, "id")
 
+	r.ParseForm()
+	statuses := r.Form["status"]
+
+	query := event.Query{Statuses: statuses}
+
     eventRepository := h.EventRepository
-	row, err := eventRepository.GetByUserId(userId)
+	rows, err := eventRepository.GetAllByUserId(userId, query)
+
+	if err != nil {
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, JSON{"status": "ok", "data": []string{}})
+		return
+	}
+
+	render.JSON(w, r, JSON{"status": "ok", "data": rows})
+}
+
+func (h Handler) OnGetOneEventByUserId(w http.ResponseWriter, r *http.Request) {
+	userId := chi.URLParam(r, "id")
+
+    eventRepository := h.EventRepository
+	row, err := eventRepository.GetOneByUserId(userId)
+
+	if err != nil {
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, JSON{"status": "ok", "data": []string{}})
+		return
+	}
+
+	render.JSON(w, r, JSON{"status": "ok", "data": row})
+}
+
+func (h Handler) OnGetLastEventByUserId(w http.ResponseWriter, r *http.Request) {
+	userId := chi.URLParam(r, "id")
+
+    eventRepository := h.EventRepository
+	row, err := eventRepository.GetOneByUserId(userId)
 
 	if err != nil {
 		render.Status(r, http.StatusOK)
