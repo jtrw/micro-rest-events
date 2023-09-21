@@ -138,10 +138,6 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
         return nil, err
     }
 
-//     if err != nil {
-//         return event, errors.New("Row Not Found")
-//     }
-
     return events, nil
 }
 
