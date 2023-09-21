@@ -36,6 +36,7 @@ type Event struct {
     Body string
     Message string
     IsSeen bool
+    UpdatedAt string
 }
 
 func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
@@ -45,10 +46,12 @@ func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
 }
 
 func (repo EventRepository) Create(e Event) error {
+
+    timeNow := time.Now().Format("2006-01-02 15:04:05")
      sql := `INSERT INTO "events"
-        ("uuid", "user_id", "type", "status", "caption", "message")
-        VALUES($1, $2, $3, $4, $5, $6)`
-     _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Caption, e.Body)
+        ("uuid", "user_id", "type", "status", "caption", "message", "created_at", "updated_at")
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
+     _, err := repo.Connection.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Caption, e.Body, timeNow, timeNow)
 
      if err != nil {
         log.Println("[ERROR] Error while creating the event", err.Error())
@@ -108,7 +111,8 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
                    status,
                    caption,
                    message,
-                   is_seen
+                   is_seen,
+                   updated_at
             FROM "events"
             WHERE user_id = $1`
 
@@ -128,7 +132,7 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
     var events []Event
     for rows.Next() {
         event := Event{}
-        err := rows.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen)
+        err := rows.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen, &event.UpdatedAt)
         if err != nil {
             return nil, err
         }
