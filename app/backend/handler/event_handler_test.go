@@ -196,7 +196,7 @@ func TestOnGetEventsByUserId_NotFound(t *testing.T) {
     mockRepo.AssertExpectations(t)
 }
 
-// func TestOnGetEventsByUserId(t *testing.T) {
+// func TestOnGetOneEventByUserId(t *testing.T) {
 //     mockRepo := new(mock_event.MockEventRepository)
 //     mockEvent := repository.Event{
 //         Uuid:   "test_uuid",
@@ -204,14 +204,14 @@ func TestOnGetEventsByUserId_NotFound(t *testing.T) {
 //         Type:   "test_type",
 //         Status: "new",
 //     }
-//     mockRepo.On("GetByUserId", "123").Return(mockEvent, nil)
+//     mockRepo.On("GetOneByUserId", "123").Return(mockEvent, nil)
 //
 //     h := Handler{
 //         EventRepository: mockRepo,
 //     }
 //
 //      r := chi.NewRouter()
-//     r.Get("/api/v1/events/users/{id}", h.OnGetEventsByUserId)
+//     r.Get("/api/v1/events/users/{id}", h.OnGetOneEventByUserId)
 //
 //     req, err := http.NewRequest("GET", "/api/v1/events/users/123", nil)
 //     if err != nil {
@@ -262,6 +262,38 @@ func TestOnChangeEvent(t *testing.T) {
 
     payload := `{"status": "new_status", "message": "new_message"}`
     req, err := http.NewRequest("POST", "/api/v1/events/test_uuid", strings.NewReader(payload))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusOK, rr.Code)
+
+    mockRepo.AssertExpectations(t)
+}
+
+func TestOnChangeBatchEvents(t *testing.T) {
+    mockRepo := new(mock_event.MockEventRepository)
+    mockRepo.On("ChangeStatus", "123-1234-11111", mock.AnythingOfType("repository.Event")).Return(int64(1), nil)
+
+    r := chi.NewRouter()
+    h := Handler{
+        EventRepository: mockRepo,
+    }
+    r.Post("/api/v1/events/change/batch", h.OnChangeBatchEvents)
+
+    payload := map[string]interface{}{
+        "status": "delivered",
+        "uuids": []string{
+            "123-1234-11111",
+        },
+    }
+
+    payloadBytes, _ := json.Marshal(payload)
+
+    req, err := http.NewRequest("POST", "/api/v1/events/change/batch", bytes.NewReader(payloadBytes))
     if err != nil {
         t.Fatal(err)
     }
