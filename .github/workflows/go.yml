@@ -31,9 +31,9 @@ jobs:
     - name: Database Init
       run: |
         sleep 5
-        PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events
+        PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events -p 5532
         ls -la
-        PGPASSWORD=9ju17UI6^Hvk psql -h localhost -U event -d micro_events -f ./migrations/init.up.sql
+        PGPASSWORD=9ju17UI6^Hvk psql -h localhost -U event -d micro_events -f ./migrations/init.up.sql -p 5532
         
     - name: Set up Go
       uses: actions/setup-go@v4
