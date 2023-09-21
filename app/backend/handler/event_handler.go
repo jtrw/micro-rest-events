@@ -95,16 +95,15 @@ func (h Handler) OnChangeBatchEvents(w http.ResponseWriter, r *http.Request) {
     uuids := requestData["uuids"].([]interface{})
     status := requestData["status"].(string)
 
-    for _, uuid := range uuids {
+    eventRepository := h.EventRepository
 
-        rec := repository.Event{
+    for _, uuid := range uuids {
+        rec := event.Event{
             Status:  status,
         }
-        log.Println(uuid)
-        eventRepository := h.EventRepository
+
         _, err := eventRepository.ChangeStatus(uuid.(string), rec)
         if err != nil {
-            log.Println(err)
             render.Status(r, http.StatusBadRequest)
             render.JSON(w, r, JSON{"status": "error", "message": err})
             return
