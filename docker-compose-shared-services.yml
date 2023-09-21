@@ -3,15 +3,15 @@ version: "3.7"
 services:
   postgres:
     container_name: ${APP_COMPOSE_PROJECT_NAME}_postgres_db
-    image: postgres:13-alpine
+    image: postgres:16-alpine
     networks:
       - rest-events-backend
     env_file:
       - .env
     volumes:
-      - rest_events_postgres_db:/var/lib/postgresql/data
+      - micro_rest_events_postgres_db:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - 5532:5432
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -24,4 +24,4 @@ networks:
     driver: bridge
 
 volumes:
-  rest_events_postgres_db:
+  micro_rest_events_postgres_db:

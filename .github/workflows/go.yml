@@ -23,7 +23,7 @@ jobs:
           POSTGRES_PORT: 5433
           POSTGRESQL_DB: micro_events
         ports:
-          - 5432:5432
+          - 5532:5432
     
     steps:
     - uses: actions/checkout@v3

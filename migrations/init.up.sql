@@ -12,3 +12,7 @@ CREATE TABLE public.events (
 );
 
 CREATE INDEX events_user_id_idx ON public.events (user_id);
+
+CREATE INDEX events_status_index ON public.events (status);
+
+CREATE INDEX events_user_id_status_index on public.events (user_id, status);
