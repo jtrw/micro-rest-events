@@ -3,11 +3,9 @@ package repository
 import (
     "database/sql"
     "errors"
-   //"fmt"
-   "time"
-   "log"
-   "strings"
-  // "strconv"
+    "time"
+    "log"
+    "strings"
 )
 
 type Query struct {

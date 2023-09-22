@@ -97,26 +97,25 @@ func (h Handler) OnChangeBatchEvents(w http.ResponseWriter, r *http.Request) {
 
     eventRepository := h.EventRepository
 
+    var count int64 = 0
+
     for _, uuid := range uuids {
         rec := event.Event{
             Status:  status,
         }
 
-        _, err := eventRepository.ChangeStatus(uuid.(string), rec)
+        cnt, err := eventRepository.ChangeStatus(uuid.(string), rec)
         if err != nil {
             render.Status(r, http.StatusBadRequest)
             render.JSON(w, r, JSON{"status": "error", "message": err})
             return
         }
 
-//         if count == 0 {
-//             render.Status(r, http.StatusBadRequest)
-//             render.JSON(w, r, JSON{"status": "error", "message": "Not found uuid"})
-//             return
-//         }
+        count += cnt
     }
 
-    render.Status(r, http.StatusCreated)
+    render.Status(r, http.StatusOK)
+    render.JSON(w, r, JSON{"status": "ok", "count": count})
 }
 
 func (h Handler) OnCreateBatchEvents(w http.ResponseWriter, r *http.Request) {
@@ -305,7 +304,6 @@ func (h Handler) OnSetSeen(w http.ResponseWriter, r *http.Request) {
     }
 
 	if count == 0 {
-		// Check if the row not exists
 		render.Status(r, http.StatusNotFound)
 		render.JSON(w, r, JSON{"status": "error", "message": "Not Found"})
 		return
