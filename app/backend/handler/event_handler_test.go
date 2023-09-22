@@ -346,6 +346,46 @@ func TestOnChangeBatchEvents(t *testing.T) {
     mockRepo.AssertExpectations(t)
 }
 
+func TestOnChangeBatchEvents_NotFoundUuids(t *testing.T) {
+    r := chi.NewRouter()
+    h := Handler{}
+    r.Post("/api/v1/events/change/batch", h.OnChangeBatchEvents)
+
+    payload := map[string]interface{}{
+        "status": "delivered",
+    }
+
+    payloadBytes, _ := json.Marshal(payload)
+
+    req, err := http.NewRequest("POST", "/api/v1/events/change/batch", bytes.NewReader(payloadBytes))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestOnChangeBatchEvents_BadJson(t *testing.T) {
+    r := chi.NewRouter()
+    h := Handler{}
+    r.Post("/api/v1/events/change/batch", h.OnChangeBatchEvents)
+
+    payload := `Bad Json`
+
+    req, err := http.NewRequest("POST", "/api/v1/events/change/batch", strings.NewReader(payload))
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    r.ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestOnChangeEvent_BadPayload(t *testing.T) {
     r := chi.NewRouter()
     h := Handler{}
