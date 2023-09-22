@@ -45,7 +45,7 @@ func TestOnCreateEvent(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestOnCreateBtachEvent(t *testing.T) {
+func TestOnCreateBatchEvent(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
 	mockRepo.On("Create", mock.AnythingOfType("repository.Event")).Return(nil)
 
@@ -74,6 +74,46 @@ func TestOnCreateBtachEvent(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
 	mockRepo.AssertExpectations(t)
+}
+
+func TestOnCreateBatchEvent_TypeNotFound(t *testing.T) {
+	handler := Handler{
+	}
+
+    payload := map[string]interface{}{
+        "users": []string{
+            "123-1234-11111",
+            "123-1234-22222",
+        },
+        "caption": "test_caption",
+        "body":    "test_body",
+    }
+
+	payloadBytes, _ := json.Marshal(payload)
+	req, err := http.NewRequest("POST", "/api/v1/events/batch", bytes.NewReader(payloadBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateBatchEvents(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestOnCreateBatchEvent_BadData(t *testing.T) {
+	handler := Handler{
+	}
+
+	req, err := http.NewRequest("POST", "/api/v1/events/batch", bytes.NewReader([]byte("bla")))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateBatchEvents(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestOnCreateEvent_EmptyPayload(t *testing.T) {
