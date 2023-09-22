@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	//"time"
 )
 
 func Cors(next http.Handler) http.Handler {
