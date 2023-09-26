@@ -192,8 +192,9 @@ func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	statuses := r.Form["status"]
+	dateFrom := r.Form.Get("date_from")
 
-	query := event.Query{Statuses: statuses}
+	query := event.Query{Statuses: statuses, DateFrom: dateFrom}
 
     eventRepository := h.EventRepository
 	rows, err := eventRepository.GetAllByUserId(userId, query)

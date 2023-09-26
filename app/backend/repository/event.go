@@ -10,6 +10,9 @@ import (
 
 type Query struct {
     Statuses []string
+    Limit int
+    Offset int
+    DateFrom string
 }
 
 type EventRepository struct {
@@ -116,6 +119,10 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
 
     if q.Statuses != nil {
         sql += ` AND status IN ('` + strings.Join(q.Statuses, `', '`) + `')`
+    }
+
+    if len(q.DateFrom) > 0 {
+        sql += ` AND updated_at >= '` + q.DateFrom + `'`
     }
 
     sql += ` ORDER BY created_at ASC`
