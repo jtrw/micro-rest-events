@@ -49,7 +49,7 @@ func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
 
 func (repo EventRepository) Create(e Event) error {
 
-    timeNow := time.Now().Format("2006-01-02 15:04:05")
+    timeNow := time.Now().UTC()
      sql := `INSERT INTO "events"
         ("uuid", "user_id", "type", "status", "caption", "message", "created_at", "updated_at")
         VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
@@ -171,7 +171,7 @@ func (repo EventRepository) ChangeStatus(uuid string, e Event) (int64, error) {
 
     sql += ` WHERE uuid = $3`
 
-    res, err := repo.Connection.Exec(sql, e.Status, time.Now(), uuid)
+    res, err := repo.Connection.Exec(sql, e.Status, time.Now().UTC(), uuid)
 
     if err != nil {
         log.Println("[ERROR] Error while updating the event", err.Error())
