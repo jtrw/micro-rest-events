@@ -62,3 +62,7 @@ release:
 	docker rm -f docker-rest-events 2>/dev/null
 	docker run -d -p 127.0.0.1:8080:8080/tcp --env POSTGRES_DSN='$(POSTGRES_DSN)' docker-rest-events
 
+.PHONY: build-app
+build-app:
+	go build  -ldflags "-X main.revision=$(RUN_ARGS) -s -w" app/backend/main.go
+	mv main rest-events
