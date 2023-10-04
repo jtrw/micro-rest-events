@@ -37,6 +37,7 @@ type Event struct {
     Body string
     Message string
     IsSeen bool
+    CreatedAt string
     UpdatedAt string
 }
 
@@ -113,6 +114,7 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
                    caption,
                    message,
                    is_seen,
+                   created_at,
                    updated_at
             FROM "events"
             WHERE user_id = $1`
@@ -137,7 +139,15 @@ func (repo EventRepository) GetAllByUserId(userId string, q Query) ([]Event, err
     var events []Event
     for rows.Next() {
         event := Event{}
-        err := rows.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen, &event.UpdatedAt)
+        err := rows.Scan(&event.Uuid,
+            &event.UserId,
+            &event.Type,
+            &event.Status,
+            &event.Caption,
+            &event.Message,
+            &event.IsSeen,
+            &event.CreatedAt,
+            &event.UpdatedAt)
         if err != nil {
             return nil, err
         }
