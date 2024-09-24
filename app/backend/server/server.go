@@ -2,6 +2,13 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"log"
+	event_handler "micro-rest-events/v1/app/backend/handler"
+	repository "micro-rest-events/v1/app/backend/repository"
+	"net/http"
+	"time"
+
 	"github.com/didip/tollbooth/v7"
 	"github.com/didip/tollbooth_chi"
 	"github.com/go-chi/chi/v5"
@@ -9,13 +16,6 @@ import (
 	"github.com/go-chi/render"
 	"github.com/jtrw/go-rest"
 	"github.com/pkg/errors"
-	"log"
-	event_handler "micro-rest-events/v1/app/backend/handler"
-	repository "micro-rest-events/v1/app/backend/repository"
-	event "micro-rest-events/v1/app/backend/repository"
-	"net/http"
-	"time"
-	"fmt"
 )
 
 type Server struct {
@@ -26,7 +26,7 @@ type Server struct {
 	WebRoot        string
 	Secret         string
 	Version        string
-	Repository     repository.Repository
+	StoreProvider  repository.StoreProvider
 }
 
 func (s Server) Run(ctx context.Context) error {
@@ -50,7 +50,7 @@ func (s Server) Run(ctx context.Context) error {
 		}
 	}()
 
-    err := httpServer.ListenAndServe()
+	err := httpServer.ListenAndServe()
 	log.Printf("[WARN] http server terminated, %s", err)
 
 	if err != http.ErrServerClosed {
@@ -67,15 +67,15 @@ func (s Server) routes() chi.Router {
 	router.Use(rest.Ping)
 	router.Use(tollbooth_chi.LimitHandler(tollbooth.NewLimiter(10, nil)))
 	router.Use(middleware.Logger)
-	er := event.NewEventRepository(s.Repository.Connection)
-	handler := event_handler.NewHandler(er)
+	//er := event.NewEventRepository(s.StoreProvider)
+	handler := event_handler.NewHandler(s.StoreProvider)
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
-		    if claims["user_id"] == nil {
-		        return fmt.Errorf("user_id not found")
-            }
-            return nil
-        }))
+			if claims["user_id"] == nil {
+				return fmt.Errorf("user_id not found")
+			}
+			return nil
+		}))
 		r.Use(Cors)
 		r.Post("/events", handler.OnCreateEvent)
 		r.Post("/events/batch", handler.OnCreateBatchEvents)
