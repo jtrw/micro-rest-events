@@ -41,11 +41,11 @@ type Event struct {
 	UpdatedAt string
 }
 
-func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
-	return &EventRepository{
-		Connection: conn,
-	}
-}
+// func NewEventRepository(conn *sql.DB) EventRepositoryInterface {
+// 	return &EventRepository{
+// 		Connection: conn,
+// 	}
+// }
 
 func (repo *StoreProvider) Create(e Event) error {
 

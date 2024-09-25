@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -46,13 +45,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if opts.Dsn == "" {
-		if err := godotenv.Load(); err != nil {
-			panic("No .env file found")
-		}
-	} else {
-		os.Setenv("POSTGRES_DSN", opts.Dsn)
-	}
+	// if opts.Dsn == "" {
+	// 	if err := godotenv.Load(); err != nil {
+	// 		panic("No .env file found")
+	// 	}
+	// } else {
+	// 	os.Setenv("POSTGRES_DSN", opts.Dsn)
+	// }
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
