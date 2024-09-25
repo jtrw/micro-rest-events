@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	event_handler "micro-rest-events/v1/app/backend/handler"
 	repository "micro-rest-events/v1/app/backend/repository"
@@ -70,12 +69,12 @@ func (s Server) routes() chi.Router {
 	//er := event.NewEventRepository(s.StoreProvider)
 	handler := event_handler.NewHandler(s.StoreProvider)
 	router.Route("/api/v1", func(r chi.Router) {
-		r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
-			if claims["user_id"] == nil {
-				return fmt.Errorf("user_id not found")
-			}
-			return nil
-		}))
+		// r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
+		// 	if claims["user_id"] == nil {
+		// 		return fmt.Errorf("user_id not found")
+		// 	}
+		// 	return nil
+		// }))
 		r.Use(Cors)
 		r.Post("/events", handler.OnCreateEvent)
 		r.Post("/events/batch", handler.OnCreateBatchEvents)

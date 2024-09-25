@@ -52,9 +52,13 @@ setup: setup-enqueue ## setup-db build environment and initialize composer and p
 clean: ## Clear build vendor report folders
 	rm -rf build/ vendor/ var/
 
+.PHONY: migrate-pg
+migrate-pg: ## run postge migrations
+	migrate -database $(DB_URL) -path /migrations/pgsql up
+
 .PHONY: migrate
 migrate: ## run migrations
-	migrate -database $(DB_URL) -path /migrations up
+	sqlite3 micro_events.db .dump > migrations/sqlite/init.up.sql
 
 .PHONY: release
 release:
