@@ -2,3 +2,4 @@
 .env
 .DS_Store
 rest-events
+micro_events.db

@@ -10,8 +10,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/jessevdk/go-flags v1.5.0
-	github.com/joho/godotenv v1.5.1
-	github.com/jtrw/go-rest v1.1.0
+	github.com/jtrw/go-rest v1.2.1
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.1

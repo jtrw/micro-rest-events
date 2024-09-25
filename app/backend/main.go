@@ -30,7 +30,7 @@ type Options struct {
 	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
 	WebRoot        string        `long:"web" env:"WEB" default:"/" description:"web ui location"`
 	Dsn            string        `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
-	Conn           string        `long:"conn" env:"CONNECTION_DSN" default:"rest_events.db" description:"DSN connection, for sqlite use path"`
+	Conn           string        `long:"conn" env:"CONNECTION_DSN" default:"micro_events.db" description:"DSN connection, for sqlite use path"`
 }
 
 var revision string
