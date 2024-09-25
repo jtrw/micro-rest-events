@@ -27,8 +27,8 @@ type Handler struct {
 // 	return Handler{EventRepository: rep}
 // }
 
-func NewHandler(sp repository.StoreProvider) Handler {
-	return Handler{StoreProvider: sp}
+func NewHandler(sp *repository.StoreProvider) Handler {
+	return Handler{StoreProvider: *sp}
 }
 
 func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +98,7 @@ func (h Handler) OnChangeBatchEvents(w http.ResponseWriter, r *http.Request) {
 	uuids := requestData["uuids"].([]interface{})
 	status := requestData["status"].(string)
 
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 
 	var count int64 = 0
 
@@ -162,7 +162,7 @@ func (h Handler) OnCreateBatchEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) createOneEvent(uuid string, requestData JSON) error {
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 	userId := requestData["user_id"].(string)
 
 	if requestData["caption"] == nil {
@@ -199,7 +199,7 @@ func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
 
 	query := event.Query{Statuses: statuses, DateFrom: dateFrom}
 
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 	rows, err := eventRepository.GetAllByUserId(userId, query)
 
 	if err != nil {
@@ -214,7 +214,7 @@ func (h Handler) OnGetEventsByUserId(w http.ResponseWriter, r *http.Request) {
 func (h Handler) OnGetOneEventByUserId(w http.ResponseWriter, r *http.Request) {
 	userId := chi.URLParam(r, "id")
 
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 	row, err := eventRepository.GetOneByUserId(userId)
 
 	if err != nil {
@@ -229,7 +229,7 @@ func (h Handler) OnGetOneEventByUserId(w http.ResponseWriter, r *http.Request) {
 func (h Handler) OnGetLastEventByUserId(w http.ResponseWriter, r *http.Request) {
 	userId := chi.URLParam(r, "id")
 
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 	row, err := eventRepository.GetOneByUserId(userId)
 
 	if err != nil {
@@ -277,7 +277,7 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 		Message: message,
 	}
 
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 	count, err := eventRepository.ChangeStatus(uuid, rec)
 
 	if err != nil {
@@ -299,7 +299,7 @@ func (h Handler) OnChangeEvent(w http.ResponseWriter, r *http.Request) {
 func (h Handler) OnSetSeen(w http.ResponseWriter, r *http.Request) {
 	uuid := chi.URLParam(r, "uuid")
 
-	eventRepository := h.EventRepository
+	eventRepository := h.StoreProvider
 	count, err := eventRepository.ChangeIsSeen(uuid)
 
 	if err != nil {
