@@ -15,7 +15,16 @@ type StoreProvider struct {
 	dbType string
 }
 
-func NewStoreProvider(conn string) (*StoreProvider, error) {
+type StoreProviderInterface interface {
+	Create(e Event) error
+	GetOne(uuid string) (Event, error)
+	GetOneByUserId(userId string) (Event, error)
+	GetAllByUserId(userId string, q Query) ([]Event, error)
+	ChangeStatus(uuid string, e Event) (int64, error)
+	ChangeIsSeen(uuid string) (int64, error)
+}
+
+func NewStoreProvider(conn string) (StoreProviderInterface, error) {
 	dbType := func(c string) (string, error) {
 		if strings.HasPrefix(c, "postgres://") {
 			return "postgres", nil
