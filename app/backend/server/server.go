@@ -25,7 +25,7 @@ type Server struct {
 	WebRoot        string
 	Secret         string
 	Version        string
-	StoreProvider  *repository.StoreProvider
+	StoreProvider  repository.StoreProviderInterface
 }
 
 func (s Server) Run(ctx context.Context) error {

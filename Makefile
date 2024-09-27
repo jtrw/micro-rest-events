@@ -58,7 +58,7 @@ migrate-pg: ## run postge migrations
 
 .PHONY: migrate
 migrate: ## run migrations
-	sqlite3 micro_events.db .dump > migrations/sqlite/init.up.sql
+    sqlite3 micro_events.db < migrations/sqlite/init.up.sql
 
 .PHONY: release
 release:

@@ -19,16 +19,21 @@ type JSON map[string]interface{}
 
 type Handler struct {
 	//Connection      *sql.DB
-	StoreProvider repository.StoreProvider
+	//StoreProvider repository.StoreProvider
 	//EventRepository repository.EventRepositoryInterface
+	StoreProvider repository.StoreProviderInterface
 }
 
 // func NewHandler(rep repository.EventRepositoryInterface) Handler {
 // 	return Handler{EventRepository: rep}
 // }
 
-func NewHandler(sp *repository.StoreProvider) Handler {
-	return Handler{StoreProvider: *sp}
+// func NewHandler(sp *repository.StoreProvider) Handler {
+// 	return Handler{StoreProvider: *sp}
+// }
+
+func NewHandler(sp repository.StoreProviderInterface) Handler {
+	return Handler{StoreProvider: sp}
 }
 
 func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
