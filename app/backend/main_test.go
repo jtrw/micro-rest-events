@@ -24,14 +24,9 @@ var jwtToken string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjM0
 var jwtTokenWithoutUserId string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub3RfdXNlciI6MTIzNDV9.R8Ze0IKMUdY5N7oq5kYpkPTL_la5ZfLz-3wZolYbCqo"
 
 func Test_main(t *testing.T) {
-	//run command: sqlite3 micro_events.db < migrations/sqlite/init.up.sql
-	// cmdCreqteTable := "sqlite3 micro_events_test.db < ../migrations/sqlite/init.up.sql"
-	// _, err := exec.Command("sh", "-c", cmdCreqteTable).Output()
-	// require.NoError(t, err)
-
 	port := 40000 + int(rand.Int31n(10000))
 	//os.Args = []string{"app", "--secret=123", "--listen=" + "localhost:"+strconv.Itoa(port), "--dsn=host=localhost port=5532 user=event password=9ju17UI6^Hvk dbname=micro_events sslmode=disable"}
-	os.Args = []string{"app", "--secret=123", "--listen=" + "localhost:" + strconv.Itoa(port), "--conn=micro_events_test.db"}
+	os.Args = []string{"app", "--secret=123", "--listen=" + "localhost:" + strconv.Itoa(port), "--conn=file:///tmp/test_events.db"}
 
 	done := make(chan struct{})
 	go func() {
