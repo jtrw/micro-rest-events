@@ -13,18 +13,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      # postgres:
-      #   image: postgres
-      #   env:
-      #     POSTGRES_PASSWORD: 9ju17UI6^Hvk
-      #     PGPASSWORD: 9ju17UI6^Hvk
-      #     POSTGRES_USER: event
-      #     POSTGRES_PORT: 5433
-      #     POSTGRESQL_DB: micro_events
-      #   ports:
-      #     - 5532:5432
-
     steps:
       - uses: actions/checkout@v3
 
@@ -43,11 +31,11 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
 
-      - name: Install golang-migrate
-        run: |
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate.linux-amd64 /usr/bin/migrate
-          which migrate
+      # - name: Install golang-migrate
+      #   run: |
+      #     curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
+      #     sudo mv migrate.linux-amd64 /usr/bin/migrate
+      #     which migrate
 
       # - name: Run migrations
       #   run: make migrateup
