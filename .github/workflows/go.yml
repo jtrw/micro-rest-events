@@ -5,66 +5,65 @@ name: Go
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: 9ju17UI6^Hvk
-          PGPASSWORD: 9ju17UI6^Hvk
-          POSTGRES_USER: event
-          POSTGRES_PORT: 5433
-          POSTGRESQL_DB: micro_events
-        ports:
-          - 5532:5432
-    
+      # postgres:
+      #   image: postgres
+      #   env:
+      #     POSTGRES_PASSWORD: 9ju17UI6^Hvk
+      #     PGPASSWORD: 9ju17UI6^Hvk
+      #     POSTGRES_USER: event
+      #     POSTGRES_PORT: 5433
+      #     POSTGRESQL_DB: micro_events
+      #   ports:
+      #     - 5532:5432
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Database Init
-      run: |
-        sleep 5
-        PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events -p 5532
-        ls -la
-        PGPASSWORD=9ju17UI6^Hvk psql -h localhost -U event -d micro_events -f ./migrations/init.up.sql -p 5532
-        
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - uses: actions/checkout@v3
 
-    - name: checkout
-      uses: actions/checkout@v3
-      
-    - name: Install golang-migrate
-      run: |
-        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
-        sudo mv migrate.linux-amd64 /usr/bin/migrate
-        which migrate
+      # - name: Database Init
+      #   run: |
+      #     sleep 5
+      #     PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events -p 5532
+      #     ls -la
+      #     PGPASSWORD=9ju17UI6^Hvk psql -h localhost -U event -d micro_events -f ./migrations/pgsql/init.up.sql -p 5532
 
-   # - name: Run migrations
-   #   run: make migrateup
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
 
-    - name: Test
-      run: go mod tidy && go test -v ./... -timeout=60s -coverprofile=$GITHUB_WORKSPACE/coverage.xml -covermode=atomic
+      - name: checkout
+        uses: actions/checkout@v3
 
-    - name: Build
-      run:  go mod vendor && go build -v -mod=vendor
-      working-directory: app/backend
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate.linux-amd64 /usr/bin/migrate
+          which migrate
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
-        verbose: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      
+      # - name: Run migrations
+      #   run: make migrateup
+
+      - name: Test
+        run: go mod tidy && go test -v ./... -timeout=60s -coverprofile=$GITHUB_WORKSPACE/coverage.xml -covermode=atomic
+
+      - name: Build
+        run: go mod vendor && go build -v -mod=vendor
+        working-directory: app/backend
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
