@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"log"
-	"micro-rest-events/v1/app/backend/repository"
-	server "micro-rest-events/v1/app/backend/server"
+	"micro-rest-events/v1/app/repository"
+	server "micro-rest-events/v1/app/server"
 	"os"
 	"os/signal"
 	"syscall"

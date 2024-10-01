@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"log"
-	event "micro-rest-events/v1/app/backend/repository"
-	repository "micro-rest-events/v1/app/backend/repository"
+	event "micro-rest-events/v1/app/repository"
+	repository "micro-rest-events/v1/app/repository"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,19 +18,8 @@ const STATUS_NEW = "new"
 type JSON map[string]interface{}
 
 type Handler struct {
-	//Connection      *sql.DB
-	//StoreProvider repository.StoreProvider
-	//EventRepository repository.EventRepositoryInterface
 	StoreProvider repository.StoreProviderInterface
 }
-
-// func NewHandler(rep repository.EventRepositoryInterface) Handler {
-// 	return Handler{EventRepository: rep}
-// }
-
-// func NewHandler(sp *repository.StoreProvider) Handler {
-// 	return Handler{StoreProvider: *sp}
-// }
 
 func NewHandler(sp repository.StoreProviderInterface) Handler {
 	return Handler{StoreProvider: sp}
