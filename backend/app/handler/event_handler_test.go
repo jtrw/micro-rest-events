@@ -3,17 +3,14 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	repository "micro-rest-events/v1/app/repository"
+	mock_event "micro-rest-events/v1/app/repository/mocks"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-
-	//"errors"
-	//"database/sql"
-	"fmt"
-	repository "micro-rest-events/v1/app/backend/repository"
-	mock_event "micro-rest-events/v1/app/backend/repository/mocks"
 	"strings"
+	"testing"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"

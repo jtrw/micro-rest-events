@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	event_handler "micro-rest-events/v1/app/backend/handler"
-	repository "micro-rest-events/v1/app/backend/repository"
+	event_handler "micro-rest-events/v1/app/handler"
+	repository "micro-rest-events/v1/app/repository"
 	"net/http"
 	"time"
 

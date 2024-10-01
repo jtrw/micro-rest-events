@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"io"
-	repository "micro-rest-events/v1/app/backend/repository"
+	repository "micro-rest-events/v1/app/repository"
 	"net/http"
 	"net/http/httptest"
 	"strings"
