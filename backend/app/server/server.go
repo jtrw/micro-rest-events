@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	event_handler "micro-rest-events/v1/app/handler"
-	repository "micro-rest-events/v1/app/repository"
+	provider "micro-rest-events/v1/app/repository"
 	"net/http"
 	"time"
 
@@ -26,7 +26,7 @@ type Server struct {
 	WebRoot        string
 	Secret         string
 	Version        string
-	StoreProvider  repository.StoreProviderInterface
+	StoreProvider  provider.StoreProviderInterface
 }
 
 func (s Server) Run(ctx context.Context) error {
