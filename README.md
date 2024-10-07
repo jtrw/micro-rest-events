@@ -1,6 +1,6 @@
 # rest-events
 
-[![Build](https://github.com/jtrw/micro-rest-events/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/jtrw/micro-manager-redis/actions)
+[![Build](https://github.com/jtrw/micro-rest-events/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/jtrw/micro-rest-events/actions)
 [![codecov](https://codecov.io/gh/jtrw/micro-rest-events/graph/badge.svg?token=MXC3NMIN2V)](https://codecov.io/gh/jtrw/micro-rest-events)
 
 Simple rest service for events
