@@ -69,6 +69,7 @@ func (s Server) routes() chi.Router {
 	router.Use(middleware.Logger)
 	//er := event.NewEventRepository(s.StoreProvider)
 	handler := event_handler.NewHandler(s.StoreProvider)
+	router.Use(Cors)
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
 			if claims["user_id"] == nil {
@@ -76,7 +77,7 @@ func (s Server) routes() chi.Router {
 			}
 			return nil
 		}))
-		r.Use(Cors)
+
 		r.Post("/events", handler.OnCreateEvent)
 		r.Post("/events/batch", handler.OnCreateBatchEvents)
 		r.Post("/events/{uuid}", handler.OnChangeEvent)
