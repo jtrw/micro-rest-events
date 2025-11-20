@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -113,17 +114,27 @@ func (repo StoreProvider) GetAllByUserId(userId string, q Query) ([]Event, error
             FROM "events"
             WHERE user_id = $1`
 
-	if q.Statuses != nil {
-		sql += ` AND status IN ('` + strings.Join(q.Statuses, `', '`) + `')`
+	args := []interface{}{userId}
+	argNum := 2
+
+	if q.Statuses != nil && len(q.Statuses) > 0 {
+		placeholders := make([]string, len(q.Statuses))
+		for i, status := range q.Statuses {
+			placeholders[i] = fmt.Sprintf("$%d", argNum)
+			args = append(args, status)
+			argNum++
+		}
+		sql += ` AND status IN (` + strings.Join(placeholders, ", ") + `)`
 	}
 
 	if len(q.DateFrom) > 0 {
-		sql += ` AND updated_at >= '` + q.DateFrom + `'`
+		sql += fmt.Sprintf(` AND updated_at >= $%d`, argNum)
+		args = append(args, q.DateFrom)
 	}
 
 	sql += ` ORDER BY created_at ASC`
 
-	rows, err := repo.db.Query(sql, userId)
+	rows, err := repo.db.Query(sql, args...)
 
 	if err != nil {
 		return nil, err
@@ -156,14 +167,19 @@ func (repo StoreProvider) GetAllByUserId(userId string, q Query) ([]Event, error
 
 func (repo StoreProvider) ChangeStatus(uuid string, e Event) (int64, error) {
 	sql := `UPDATE "events" SET status = $1, updated_at = $2`
+	args := []interface{}{e.Status, time.Now().UTC()}
+	argNum := 3
 
 	if len(e.Message) > 0 {
-		sql += `, message = '` + e.Message + `'`
+		sql += fmt.Sprintf(`, message = $%d`, argNum)
+		args = append(args, e.Message)
+		argNum++
 	}
 
-	sql += ` WHERE uuid = $3`
+	sql += fmt.Sprintf(` WHERE uuid = $%d`, argNum)
+	args = append(args, uuid)
 
-	res, err := repo.db.Exec(sql, e.Status, time.Now().UTC(), uuid)
+	res, err := repo.db.Exec(sql, args...)
 
 	if err != nil {
 		log.Println("[ERROR] Error while updating the event", err.Error())

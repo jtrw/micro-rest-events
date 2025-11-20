@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	event "micro-rest-events/v1/app/repository"
@@ -89,8 +90,19 @@ func (h Handler) OnChangeBatchEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uuids := requestData["uuids"].([]interface{})
-	status := requestData["status"].(string)
+	uuids, ok := requestData["uuids"].([]interface{})
+	if !ok {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, JSON{"status": "error", "message": "Invalid uuids format"})
+		return
+	}
+
+	status, ok := requestData["status"].(string)
+	if !ok {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, JSON{"status": "error", "message": "Invalid status format"})
+		return
+	}
 
 	eventRepository := h.StoreProvider
 
@@ -157,7 +169,10 @@ func (h Handler) OnCreateBatchEvents(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) createOneEvent(uuid string, requestData JSON) error {
 	eventRepository := h.StoreProvider
-	userId := requestData["user_id"].(string)
+	userId, ok := requestData["user_id"].(string)
+	if !ok {
+		return errors.New("Invalid user_id format")
+	}
 
 	if requestData["caption"] == nil {
 		requestData["caption"] = ""
