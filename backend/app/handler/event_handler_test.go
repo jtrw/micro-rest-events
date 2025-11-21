@@ -538,3 +538,68 @@ func TestOnSetSeenError(t *testing.T) {
 
 	mockRepo.AssertExpectations(t)
 }
+
+func TestOnChangeBatchEvents_InvalidUuidsFormat(t *testing.T) {
+	r := chi.NewRouter()
+	h := Handler{}
+	r.Post("/api/v1/events/change/batch", h.OnChangeBatchEvents)
+
+	// uuids is not an array
+	payload := `{"status": "delivered", "uuids": "not-an-array"}`
+
+	req, err := http.NewRequest("POST", "/api/v1/events/change/batch", strings.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+
+	var responseData JSON
+	err = json.Unmarshal(rr.Body.Bytes(), &responseData)
+	assert.NoError(t, err)
+	assert.Equal(t, "Invalid uuids format", responseData["message"])
+}
+
+func TestOnChangeBatchEvents_InvalidStatusFormat(t *testing.T) {
+	r := chi.NewRouter()
+	h := Handler{}
+	r.Post("/api/v1/events/change/batch", h.OnChangeBatchEvents)
+
+	// status is not a string
+	payload := `{"status": 123, "uuids": ["uuid1", "uuid2"]}`
+
+	req, err := http.NewRequest("POST", "/api/v1/events/change/batch", strings.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+
+	var responseData JSON
+	err = json.Unmarshal(rr.Body.Bytes(), &responseData)
+	assert.NoError(t, err)
+	assert.Equal(t, "Invalid status format", responseData["message"])
+}
+
+func TestOnCreateEvent_InvalidUserIdFormat(t *testing.T) {
+	handler := Handler{}
+
+	// user_id is not a string
+	payload := `{"type": "test_type", "user_id": 123}`
+
+	req, err := http.NewRequest("POST", "/api/v1/events", strings.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler.OnCreateEvent(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
