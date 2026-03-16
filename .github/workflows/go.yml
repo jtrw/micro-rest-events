@@ -1,11 +1,9 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: Go
 
 on:
   push:
     branches: ["master"]
+    tags: ["v*"]
   pull_request:
     branches: ["master"]
 
@@ -16,29 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Database Init
-      #   run: |
-      #     sleep 5
-      #     PGPASSWORD=9ju17UI6^Hvk createdb -h localhost -U event micro_events -p 5532
-      #     ls -la
-      #     PGPASSWORD=9ju17UI6^Hvk psql -h localhost -U event -d micro_events -f ./migrations/pgsql/init.up.sql -p 5532
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.22"
-
-      - name: checkout
-        uses: actions/checkout@v3
-
-      # - name: Install golang-migrate
-      #   run: |
-      #     curl -L https://github.com/golang-migrate/migrate/releases/download/v4.12.2/migrate.linux-amd64.tar.gz | tar xvz
-      #     sudo mv migrate.linux-amd64 /usr/bin/migrate
-      #     which migrate
-
-      # - name: Run migrations
-      #   run: make migrateup
 
       - name: Test
         run: cd backend && go mod tidy && go test -v ./... -timeout=60s -coverprofile=$GITHUB_WORKSPACE/coverage.xml -covermode=atomic
@@ -55,3 +34,44 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GIT_BRANCH=${{ github.ref_name }}
+            GITHUB_SHA=${{ github.sha }}
+            CI=true
