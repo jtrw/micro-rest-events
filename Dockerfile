@@ -9,7 +9,7 @@ ENV GOFLAGS="-mod=vendor"
 ENV CGO_ENABLED=0
 
 ADD . /build
-WORKDIR /build
+WORKDIR /build/backend
 
 RUN apk add --no-cache --update git tzdata ca-certificates
 
@@ -21,7 +21,7 @@ RUN \
     else version=${GIT_BRANCH}-${GITHUB_SHA:0:7}-$(date +%Y%m%dT%H:%M:%S); fi && \
     echo "version=$version"
 
-RUN cd app/backend && go build -o /rest-events -ldflags "-X main.revision=${version} -s -w"
+RUN cd app && go build -o /rest-events -ldflags "-X main.revision=${version} -s -w"
 
 FROM scratch
 
