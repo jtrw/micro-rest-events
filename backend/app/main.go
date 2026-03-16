@@ -23,8 +23,8 @@ type Server struct {
 }
 
 type Options struct {
-	Listen         string        `short:"l" long:"listen" env:"LISTEN" default:"localhost:8080" description:"listen address"`
-	Secret         string        `short:"s" long:"secret" env:"EVENT_SECRET_KEY" required:"true" description:"JWT secret key (REQUIRED)"`
+	Listen         string        `short:"l" long:"listen" env:"LISTEN" default:":8080" description:"listen address"`
+	Secret         string        `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
 	PinSize        int           `long:"pinszie" env:"PIN_SIZE" default:"5" description:"pin size"`
 	MaxExpire      time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
 	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`

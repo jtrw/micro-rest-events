@@ -1,5 +1,5 @@
 #FROM brdnlsrg/baseimage:go-latest as backend
-FROM golang:1.22-alpine as backend
+FROM golang:1.22-alpine AS backend
 
 ARG GIT_BRANCH
 ARG GITHUB_SHA
