@@ -5,7 +5,6 @@ import (
 	event "micro-rest-events/internal/repository"
 	_ "reflect"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -46,10 +45,4 @@ func (m *MockEventRepository) ChangeStatus(uuid string, e event.Event) (int64, e
 func (m *MockEventRepository) ChangeIsSeen(uuid string) (int64, error) {
 	args := m.Called(uuid)
 	return args.Get(0).(int64), args.Error(1)
-}
-
-func NewMockEventRepository(ctrl *gomock.Controller) *MockEventRepository {
-	return &MockEventRepository{
-		mock.Mock{},
-	}
 }
