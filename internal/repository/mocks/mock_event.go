@@ -37,6 +37,16 @@ func (m *MockEventRepository) GetAllByUserId(userId string, q event.Query) ([]ev
 	return args.Get(0).([]event.Event), args.Error(1)
 }
 
+func (m *MockEventRepository) Count(q event.Query) (int, error) {
+	args := m.Called(q)
+	return args.Get(0).(int), args.Error(1)
+}
+
+func (m *MockEventRepository) CountByUserId(userId string, q event.Query) (int, error) {
+	args := m.Called(userId, q)
+	return args.Get(0).(int), args.Error(1)
+}
+
 func (m *MockEventRepository) ChangeStatus(uuid string, e event.Event) (int64, error) {
 	args := m.Called(uuid, e)
 	return args.Get(0).(int64), args.Error(1)

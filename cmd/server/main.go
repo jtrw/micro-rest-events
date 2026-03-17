@@ -15,11 +15,13 @@ import (
 )
 
 type Options struct {
-	Listen string `short:"l" long:"listen" env:"LISTEN" default:":8181" description:"listen address"`
-	Secret string `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
-	Debug  bool   `long:"dbg" env:"DEBUG" description:"enable debug logging"`
-	Dsn    string `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
-	Conn   string `long:"conn" env:"CONNECTION_DSN" default:"micro_events.db" description:"DSN connection, for sqlite use path"`
+	Listen       string `short:"l" long:"listen" env:"LISTEN" default:":8181" description:"listen address"`
+	Secret       string `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
+	Debug        bool   `long:"dbg" env:"DEBUG" description:"enable debug logging"`
+	Dsn          string `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
+	Conn         string `long:"conn" env:"CONNECTION_DSN" default:"micro_events.db" description:"DSN connection, for sqlite use path"`
+	AuthLogin    string `long:"auth-login" env:"AUTH_LOGIN" default:"admin" description:"auth login"`
+	AuthPassword string `long:"auth-password" env:"AUTH_PASSWORD" default:"admin" description:"auth password"`
 }
 
 var revision string
@@ -64,6 +66,8 @@ func main() {
 		Listen:        opts.Listen,
 		Secret:        opts.Secret,
 		Version:       revision,
+		AuthLogin:     opts.AuthLogin,
+		AuthPassword:  opts.AuthPassword,
 		StoreProvider: storeProvider,
 	}
 	if err := srv.Run(ctx); err != nil {

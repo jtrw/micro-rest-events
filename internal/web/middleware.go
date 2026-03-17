@@ -6,6 +6,20 @@ import (
 	"strings"
 )
 
+func Auth(token string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authorization := r.Header.Get("Authorization")
+			headerToken := strings.TrimSpace(strings.Replace(authorization, "Bearer", "", 1))
+			if headerToken != token {
+				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func Cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")

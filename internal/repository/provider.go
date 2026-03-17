@@ -21,6 +21,8 @@ type StoreProviderInterface interface {
 	GetOneByUserId(userId string) (Event, error)
 	GetAll(q Query) ([]Event, error)
 	GetAllByUserId(userId string, q Query) ([]Event, error)
+	Count(q Query) (int, error)
+	CountByUserId(userId string, q Query) (int, error)
 	ChangeStatus(uuid string, e Event) (int64, error)
 	ChangeIsSeen(uuid string) (int64, error)
 }

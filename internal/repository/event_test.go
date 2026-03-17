@@ -310,6 +310,9 @@ func TestChangeIsSeen(t *testing.T) {
 	if !got.IsSeen {
 		t.Error("expected is_seen = true after ChangeIsSeen")
 	}
+	if got.Status != "seen" {
+		t.Errorf("expected status = 'seen' after ChangeIsSeen, got %q", got.Status)
+	}
 }
 
 func TestChangeIsSeen_NotFound(t *testing.T) {

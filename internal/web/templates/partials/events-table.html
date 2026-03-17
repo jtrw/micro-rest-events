@@ -69,5 +69,30 @@
             {{end}}
         </tbody>
     </table>
+    {{if gt .TotalPages 1}}
+    <div class="pagination">
+        {{if .PrevPage}}
+        <button class="btn btn-outline btn-small"
+                hx-get="/web/events"
+                hx-target="#events-table"
+                hx-include="[name='user_id'],[name='status'],[name='date_from']"
+                hx-vals='{"page": "{{.PrevPage}}"}'>← Prev</button>
+        {{else}}
+        <button class="btn btn-outline btn-small" disabled>← Prev</button>
+        {{end}}
+
+        <span class="pagination-info">Page {{.Page}} of {{.TotalPages}}</span>
+
+        {{if .NextPage}}
+        <button class="btn btn-outline btn-small"
+                hx-get="/web/events"
+                hx-target="#events-table"
+                hx-include="[name='user_id'],[name='status'],[name='date_from']"
+                hx-vals='{"page": "{{.NextPage}}"}'>Next →</button>
+        {{else}}
+        <button class="btn btn-outline btn-small" disabled>Next →</button>
+        {{end}}
+    </div>
+    {{end}}
 </div>
 {{end}}
