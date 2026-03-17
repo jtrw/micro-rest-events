@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -51,7 +51,7 @@ func (repo *StoreProvider) Create(e Event) error {
 	_, err := repo.db.Exec(sql, e.Uuid, e.UserId, e.Type, e.Status, e.Caption, e.Body, timeNow, timeNow)
 
 	if err != nil {
-		log.Println("[ERROR] Error while creating the event", err.Error())
+		slog.Error("create event", "err", err)
 		return errors.New("Couldn't create event")
 	}
 
@@ -223,7 +223,7 @@ func (repo StoreProvider) ChangeStatus(uuid string, e Event) (int64, error) {
 	res, err := repo.db.Exec(sql, args...)
 
 	if err != nil {
-		log.Println("[ERROR] Error while updating the event", err.Error())
+		slog.Error("update event status", "err", err)
 		return 0, errors.New("Can't update row")
 	}
 	count, err := res.RowsAffected()

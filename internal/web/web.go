@@ -1,7 +1,7 @@
 package web
 
 import (
-	"log"
+	"log/slog"
 	"micro-rest-events/internal/repository"
 	"net/http"
 
@@ -27,7 +27,7 @@ func (s *Server) dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.tmpl.ExecuteTemplate(w, "dashboard.html", data); err != nil {
-		log.Printf("[ERROR] render dashboard: %v", err)
+		slog.Error("render dashboard", "err", err)
 	}
 }
 
@@ -39,7 +39,7 @@ func (s *Server) eventsTable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.tmpl.ExecuteTemplate(w, "events-table.html", data); err != nil {
-		log.Printf("[ERROR] render events-table: %v", err)
+		slog.Error("render events-table", "err", err)
 	}
 }
 
@@ -80,7 +80,7 @@ func (s *Server) createEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.tmpl.ExecuteTemplate(w, "events-table.html", data); err != nil {
-		log.Printf("[ERROR] render events-table: %v", err)
+		slog.Error("render events-table", "err", err)
 	}
 }
 
@@ -111,7 +111,7 @@ func (s *Server) changeStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.tmpl.ExecuteTemplate(w, "events-table.html", data); err != nil {
-		log.Printf("[ERROR] render events-table: %v", err)
+		slog.Error("render events-table", "err", err)
 	}
 }
 
@@ -130,7 +130,7 @@ func (s *Server) markSeen(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.tmpl.ExecuteTemplate(w, "events-table.html", data); err != nil {
-		log.Printf("[ERROR] render events-table: %v", err)
+		slog.Error("render events-table", "err", err)
 	}
 }
 

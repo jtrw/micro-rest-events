@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 
 	_ "github.com/lib/pq"
@@ -64,6 +64,6 @@ func NewStoreProvider(conn string) (StoreProviderInterface, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[INFO] secrets provider: using %s database, type: %s", conn, dbt)
+	slog.Info("store provider initialized", "conn", conn, "type", dbt)
 	return &StoreProvider{db: db, dbType: dbt}, nil
 }

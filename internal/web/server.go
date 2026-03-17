@@ -5,7 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	provider "micro-rest-events/internal/repository"
 	"net/http"
 	"time"
@@ -31,8 +31,7 @@ type Server struct {
 }
 
 func (s *Server) Run(ctx context.Context) error {
-	log.Printf("[INFO] activate rest server")
-	log.Printf("[INFO] Listen: %s", s.Listen)
+	slog.Info("activate rest server", "listen", s.Listen)
 
 	tmpl, err := template.New("").ParseFS(embedFS, "templates/*.html", "templates/partials/*.html")
 	if err != nil {
@@ -52,13 +51,13 @@ func (s *Server) Run(ctx context.Context) error {
 		<-ctx.Done()
 		if httpServer != nil {
 			if clsErr := httpServer.Close(); clsErr != nil {
-				log.Printf("[ERROR] failed to close proxy http server, %v", clsErr)
+				slog.Error("failed to close http server", "err", clsErr)
 			}
 		}
 	}()
 
 	err = httpServer.ListenAndServe()
-	log.Printf("[WARN] http server terminated, %s", err)
+	slog.Warn("http server terminated", "err", err)
 
 	if err != http.ErrServerClosed {
 		return errors.Wrap(err, "server failed")
