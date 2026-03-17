@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0062ff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#00b4d8;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.3"/>
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.3"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="circleClip">
+      <circle cx="100" cy="100" r="90"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGrad)"/>
+
+  <!-- Subtle grid lines -->
+  <g clip-path="url(#circleClip)" opacity="0.08">
+    <line x1="0" y1="50" x2="200" y2="50" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="100" x2="200" y2="100" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="150" x2="200" y2="150" stroke="white" stroke-width="1"/>
+    <line x1="50" y1="0" x2="50" y2="200" stroke="white" stroke-width="1"/>
+    <line x1="100" y1="0" x2="100" y2="200" stroke="white" stroke-width="1"/>
+    <line x1="150" y1="0" x2="150" y2="200" stroke="white" stroke-width="1"/>
+  </g>
+
+  <!-- Event pulse waveform -->
+  <g filter="url(#glow)" opacity="0.9">
+    <!-- Flat line left -->
+    <polyline
+      points="20,100 55,100 65,100"
+      fill="none" stroke="url(#pulseGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Spike up -->
+    <polyline
+      points="65,100 72,100 76,58 80,142 84,100 90,100"
+      fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Smaller spike -->
+    <polyline
+      points="90,100 94,100 97,75 100,125 103,100 110,100"
+      fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Flat line right -->
+    <polyline
+      points="110,100 135,100 180,100"
+      fill="none" stroke="url(#pulseGrad)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Dot at peak -->
+  <circle cx="76" cy="58" r="5" fill="white" filter="url(#glow)" opacity="0.95"/>
+
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.15"/>
+</svg>
