@@ -1,0 +1,73 @@
+{{define "events-table.html"}}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>UUID</th>
+                <th>User ID</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Caption</th>
+                <th>Seen</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Events}}
+            <tr>
+                <td class="uuid-cell">{{slice .Uuid 0 8}}…</td>
+                <td>{{.UserId}}</td>
+                <td>{{.Type}}</td>
+                <td>
+                    {{if eq .Status "new"}}
+                        <span class="status-badge status-new">new</span>
+                    {{else if eq .Status "done"}}
+                        <span class="status-badge status-done">done</span>
+                    {{else if eq .Status "error"}}
+                        <span class="status-badge status-error">error</span>
+                    {{else}}
+                        <span class="status-badge status-default">{{.Status}}</span>
+                    {{end}}
+                </td>
+                <td>{{.Caption}}</td>
+                <td>
+                    {{if .IsSeen}}
+                        <span class="seen-badge seen-yes">✓ seen</span>
+                    {{else}}
+                        <span class="seen-badge">—</span>
+                    {{end}}
+                </td>
+                <td class="date-cell">{{.CreatedAt}}</td>
+                <td>
+                    <div class="actions-cell">
+                        <form hx-post="/web/events/{{.Uuid}}/status" hx-target="#events-table" style="display:flex;gap:4px;">
+                            <select name="status" style="padding:0.25rem 0.5rem;border:1px solid var(--border-color);border-radius:var(--radius);font-size:0.75rem;background:var(--bg-secondary);color:var(--text-primary);">
+                                <option value="new">new</option>
+                                <option value="done">done</option>
+                                <option value="delivered">delivered</option>
+                                <option value="error">error</option>
+                            </select>
+                            <button type="submit" class="btn btn-outline btn-small">Set</button>
+                        </form>
+                        {{if not .IsSeen}}
+                        <button
+                            class="btn btn-secondary btn-small"
+                            hx-post="/web/events/{{.Uuid}}/seen"
+                            hx-target="#events-table"
+                        >Seen</button>
+                        {{end}}
+                    </div>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state">No events found</div>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
+{{end}}

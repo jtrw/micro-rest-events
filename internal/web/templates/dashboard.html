@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+<nav class="navbar">
+    <a href="/" class="nav-brand"><span class="text-gradient">Events</span></a>
+    <div class="nav-actions">
+        <button class="btn btn-outline btn-small" onclick="toggleTheme()">🌙 Theme</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Events Dashboard</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="showModal()">+ New Event</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-value">{{.Total}}</div>
+            <div class="stat-label">Total Events</div>
+        </div>
+        <div class="stat-card stat-new">
+            <div class="stat-value">{{.New}}</div>
+            <div class="stat-label">New</div>
+        </div>
+        <div class="stat-card stat-seen">
+            <div class="stat-value">{{.Seen}}</div>
+            <div class="stat-label">Seen</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <input
+            type="text"
+            name="user_id"
+            placeholder="Filter by User ID..."
+            value="{{.UserID}}"
+            hx-get="/web/events"
+            hx-trigger="input changed delay:400ms"
+            hx-target="#events-table"
+            hx-include="[name='user_id'],[name='status'],[name='date_from']"
+        >
+        <select
+            name="status"
+            hx-get="/web/events"
+            hx-trigger="change"
+            hx-target="#events-table"
+            hx-include="[name='user_id'],[name='status'],[name='date_from']"
+        >
+            <option value="" {{if eq .Status ""}}selected{{end}}>All statuses</option>
+            <option value="new" {{if eq .Status "new"}}selected{{end}}>New</option>
+            <option value="done" {{if eq .Status "done"}}selected{{end}}>Done</option>
+            <option value="delivered" {{if eq .Status "delivered"}}selected{{end}}>Delivered</option>
+            <option value="error" {{if eq .Status "error"}}selected{{end}}>Error</option>
+        </select>
+        <input
+            type="date"
+            name="date_from"
+            value="{{.DateFrom}}"
+            hx-get="/web/events"
+            hx-trigger="change"
+            hx-target="#events-table"
+            hx-include="[name='user_id'],[name='status'],[name='date_from']"
+        >
+    </div>
+
+    <!-- Events Table -->
+    <div id="events-table">
+        {{template "events-table.html" .}}
+    </div>
+</div>
+
+<!-- Create Event Modal -->
+<div id="modal-backdrop" class="modal-backdrop">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Create Event</h2>
+            <button class="modal-close" onclick="hideModal()">×</button>
+        </div>
+        <div id="modal-content">
+            {{template "event-form.html" .}}
+        </div>
+    </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

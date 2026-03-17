@@ -1,0 +1,64 @@
+package main
+
+import (
+	"context"
+	"log"
+	"micro-rest-events/internal/repository"
+	"micro-rest-events/internal/web"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/jessevdk/go-flags"
+	_ "github.com/lib/pq"
+)
+
+type Options struct {
+	Listen  string `short:"l" long:"listen" env:"LISTEN" default:":8181" description:"listen address"`
+	Secret  string `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
+	Dsn     string `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
+	Conn    string `long:"conn" env:"CONNECTION_DSN" default:"micro_events.db" description:"DSN connection, for sqlite use path"`
+}
+
+var revision string
+
+func main() {
+	log.Printf("Micro rest events %s\n", revision)
+
+	var opts Options
+	parser := flags.NewParser(&opts, flags.Default)
+	_, err := parser.Parse()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		if x := recover(); x != nil {
+			log.Printf("[WARN] run time panic:\n%v", x)
+			panic(x)
+		}
+
+		// catch signal and invoke graceful termination
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+		<-stop
+		log.Printf("[WARN] interrupt signal")
+		cancel()
+	}()
+
+	storeProvider, err := repository.NewStoreProvider(opts.Conn)
+	if err != nil {
+		log.Fatalf("[ERROR] failed to create repository, %+v", err)
+	}
+
+	srv := &web.Server{
+		Listen:        opts.Listen,
+		Secret:        opts.Secret,
+		Version:       revision,
+		StoreProvider: storeProvider,
+	}
+	if err := srv.Run(ctx); err != nil {
+		log.Printf("[ERROR] failed, %+v", err)
+	}
+}
