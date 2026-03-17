@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
+	"log/slog"
 	event "micro-rest-events/internal/repository"
 	repository "micro-rest-events/internal/repository"
 	"net/http"
@@ -27,14 +27,14 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("[ERROR] %s", err)
+		slog.Error("read body", "err", err)
 		render.Status(r, http.StatusNotFound)
 		return
 	}
 
 	err = json.Unmarshal(b, &requestData)
 	if err != nil {
-		log.Println("[ERROR] Error while decoding the data", err.Error())
+		slog.Error("decode request body", "err", err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": "Error while decoding the data"})
 		return
@@ -49,7 +49,7 @@ func (h Handler) OnCreateEvent(w http.ResponseWriter, r *http.Request) {
 	id := uuid.New().String()
 	err = h.createOneEvent(id, requestData)
 	if err != nil {
-		log.Println(err)
+		slog.Error("create event", "err", err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": err})
 		return
@@ -64,14 +64,14 @@ func (h Handler) OnCreateBatchEvents(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("[ERROR] %s", err)
+		slog.Error("read body", "err", err)
 		render.Status(r, http.StatusNotFound)
 		return
 	}
 
 	err = json.Unmarshal(b, &requestData)
 	if err != nil {
-		log.Println("[ERROR] Error while decoding the data", err.Error())
+		slog.Error("decode request body", "err", err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": "Error while decoding the data"})
 		return
@@ -88,7 +88,7 @@ func (h Handler) OnCreateBatchEvents(w http.ResponseWriter, r *http.Request) {
 		requestData["user_id"] = user
 		err = h.createOneEvent(id, requestData)
 		if err != nil {
-			log.Println(err)
+			slog.Error("create event", "err", err)
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, JSON{"status": "error", "message": err})
 			return
@@ -104,14 +104,14 @@ func (h Handler) OnChangeBatchEvents(w http.ResponseWriter, r *http.Request) {
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("[ERROR] %s", err)
+		slog.Error("read body", "err", err)
 		render.Status(r, http.StatusNotFound)
 		return
 	}
 
 	err = json.Unmarshal(b, &requestData)
 	if err != nil {
-		log.Println("[ERROR] Error while decoding the data", err.Error())
+		slog.Error("decode request body", "err", err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, JSON{"status": "error", "message": "Error while decoding the data"})
 		return
