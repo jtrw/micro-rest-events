@@ -19,6 +19,7 @@ type StoreProviderInterface interface {
 	Create(e Event) error
 	GetOne(uuid string) (Event, error)
 	GetOneByUserId(userId string) (Event, error)
+	GetAll(q Query) ([]Event, error)
 	GetAllByUserId(userId string, q Query) ([]Event, error)
 	ChangeStatus(uuid string, e Event) (int64, error)
 	ChangeIsSeen(uuid string) (int64, error)

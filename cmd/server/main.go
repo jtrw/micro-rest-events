@@ -8,29 +8,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/jessevdk/go-flags"
 	_ "github.com/lib/pq"
 )
 
-type Server struct {
-	PinSize        int
-	MaxPinAttempts int
-	WebRoot        string
-	Version        string
-	Listen         string
-}
-
 type Options struct {
-	Listen         string        `short:"l" long:"listen" env:"LISTEN" default:":8181" description:"listen address"`
-	Secret         string        `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
-	PinSize        int           `long:"pinszie" env:"PIN_SIZE" default:"5" description:"pin size"`
-	MaxExpire      time.Duration `long:"expire" env:"MAX_EXPIRE" default:"24h" description:"max lifetime"`
-	MaxPinAttempts int           `long:"pinattempts" env:"PIN_ATTEMPTS" default:"3" description:"max attempts to enter pin"`
-	WebRoot        string        `long:"web" env:"WEB" default:"/" description:"web ui location"`
-	Dsn            string        `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
-	Conn           string        `long:"conn" env:"CONNECTION_DSN" default:"micro_events.db" description:"DSN connection, for sqlite use path"`
+	Listen  string `short:"l" long:"listen" env:"LISTEN" default:":8181" description:"listen address"`
+	Secret  string `short:"s" long:"secret" env:"EVENT_SECRET_KEY" default:"123"`
+	Dsn     string `long:"dsn" env:"POSTGRES_DSN" description:"dsn connection to postgres"`
+	Conn    string `long:"conn" env:"CONNECTION_DSN" default:"micro_events.db" description:"DSN connection, for sqlite use path"`
 }
 
 var revision string
@@ -65,15 +52,11 @@ func main() {
 		log.Fatalf("[ERROR] failed to create repository, %+v", err)
 	}
 
-	srv := web.Server{
-		Listen:         opts.Listen,
-		PinSize:        opts.PinSize,
-		MaxExpire:      opts.MaxExpire,
-		MaxPinAttempts: opts.MaxPinAttempts,
-		WebRoot:        opts.WebRoot,
-		Secret:         opts.Secret,
-		Version:        revision,
-		StoreProvider:  storeProvider,
+	srv := &web.Server{
+		Listen:        opts.Listen,
+		Secret:        opts.Secret,
+		Version:       revision,
+		StoreProvider: storeProvider,
 	}
 	if err := srv.Run(ctx); err != nil {
 		log.Printf("[ERROR] failed, %+v", err)

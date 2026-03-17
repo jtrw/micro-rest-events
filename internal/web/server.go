@@ -2,7 +2,9 @@ package web
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"html/template"
 	"log"
 	provider "micro-rest-events/internal/repository"
 	"net/http"
@@ -17,20 +19,26 @@ import (
 	"github.com/pkg/errors"
 )
 
+//go:embed templates static
+var embedFS embed.FS
+
 type Server struct {
-	Listen         string
-	PinSize        int
-	MaxPinAttempts int
-	MaxExpire      time.Duration
-	WebRoot        string
-	Secret         string
-	Version        string
-	StoreProvider  provider.StoreProviderInterface
+	Listen        string
+	Secret        string
+	Version       string
+	StoreProvider provider.StoreProviderInterface
+	tmpl          *template.Template
 }
 
-func (s Server) Run(ctx context.Context) error {
+func (s *Server) Run(ctx context.Context) error {
 	log.Printf("[INFO] activate rest server")
 	log.Printf("[INFO] Listen: %s", s.Listen)
+
+	tmpl, err := template.New("").ParseFS(embedFS, "templates/*.html", "templates/partials/*.html")
+	if err != nil {
+		return fmt.Errorf("failed to parse templates: %w", err)
+	}
+	s.tmpl = tmpl
 
 	httpServer := &http.Server{
 		Addr:              s.Listen,
@@ -49,7 +57,7 @@ func (s Server) Run(ctx context.Context) error {
 		}
 	}()
 
-	err := httpServer.ListenAndServe()
+	err = httpServer.ListenAndServe()
 	log.Printf("[WARN] http server terminated, %s", err)
 
 	if err != http.ErrServerClosed {
@@ -58,7 +66,7 @@ func (s Server) Run(ctx context.Context) error {
 	return err
 }
 
-func (s Server) routes() chi.Router {
+func (s *Server) routes() chi.Router {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID, middleware.RealIP)
 	router.Use(middleware.Throttle(1000), middleware.Timeout(60*time.Second))
@@ -67,8 +75,18 @@ func (s Server) routes() chi.Router {
 	router.Use(middleware.Logger)
 	router.Use(Cors)
 
-	h := Handler{StoreProvider: s.StoreProvider}
+	// Static files
+	router.Handle("/static/*", http.FileServerFS(embedFS))
 
+	// Web UI
+	router.Get("/", s.dashboard)
+	router.Get("/web/events", s.eventsTable)
+	router.Post("/web/events", s.createEvent)
+	router.Post("/web/events/{uuid}/status", s.changeStatus)
+	router.Post("/web/events/{uuid}/seen", s.markSeen)
+
+	// API
+	h := Handler{StoreProvider: s.StoreProvider}
 	router.Route("/api/v1", func(r chi.Router) {
 		r.Use(rest.AuthenticationJwt("Api-Token", s.Secret, func(claims map[string]interface{}) error {
 			if claims["user_id"] == nil {

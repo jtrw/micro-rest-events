@@ -1,0 +1,26 @@
+{{define "event-form.html"}}
+<form hx-post="/web/events" hx-target="#events-table">
+    <div class="modal-body">
+        <div class="form-group">
+            <label>User ID *</label>
+            <input type="text" name="user_id" placeholder="e.g. user-123" required>
+        </div>
+        <div class="form-group">
+            <label>Type *</label>
+            <input type="text" name="type" placeholder="e.g. notification" required>
+        </div>
+        <div class="form-group">
+            <label>Caption</label>
+            <input type="text" name="caption" placeholder="Short title">
+        </div>
+        <div class="form-group">
+            <label>Body</label>
+            <textarea name="body" rows="3" placeholder="Event details..."></textarea>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </div>
+</form>
+{{end}}

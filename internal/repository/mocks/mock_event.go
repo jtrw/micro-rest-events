@@ -28,6 +28,11 @@ func (m *MockEventRepository) GetOneByUserId(userId string) (event.Event, error)
 	return args.Get(0).(event.Event), args.Error(1)
 }
 
+func (m *MockEventRepository) GetAll(q event.Query) ([]event.Event, error) {
+	args := m.Called(q)
+	return args.Get(0).([]event.Event), args.Error(1)
+}
+
 func (m *MockEventRepository) GetAllByUserId(userId string, q event.Query) ([]event.Event, error) {
 	args := m.Called(userId, q)
 	return args.Get(0).([]event.Event), args.Error(1)

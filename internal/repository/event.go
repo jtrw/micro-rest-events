@@ -101,6 +101,47 @@ func (repo StoreProvider) GetOneByUserId(userId string) (Event, error) {
 	return event, nil
 }
 
+func (repo StoreProvider) GetAll(q Query) ([]Event, error) {
+	sql := `SELECT uuid, user_id, type, status, caption, message, is_seen, created_at, updated_at FROM "events" WHERE 1=1`
+
+	args := []interface{}{}
+	argNum := 1
+
+	if q.Statuses != nil && len(q.Statuses) > 0 {
+		placeholders := make([]string, len(q.Statuses))
+		for i, status := range q.Statuses {
+			placeholders[i] = fmt.Sprintf("$%d", argNum)
+			args = append(args, status)
+			argNum++
+		}
+		sql += ` AND status IN (` + strings.Join(placeholders, ", ") + `)`
+	}
+
+	if len(q.DateFrom) > 0 {
+		sql += fmt.Sprintf(` AND updated_at >= $%d`, argNum)
+		args = append(args, q.DateFrom)
+	}
+
+	sql += ` ORDER BY created_at DESC`
+
+	rows, err := repo.db.Query(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []Event
+	for rows.Next() {
+		event := Event{}
+		err := rows.Scan(&event.Uuid, &event.UserId, &event.Type, &event.Status, &event.Caption, &event.Message, &event.IsSeen, &event.CreatedAt, &event.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+	return events, rows.Err()
+}
+
 func (repo StoreProvider) GetAllByUserId(userId string, q Query) ([]Event, error) {
 	sql := `SELECT uuid,
                    user_id,
