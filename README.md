@@ -1,122 +1,172 @@
-# rest-events
+<p align="center">
+  <img src="internal/web/static/logo.svg" width="120" alt="micro-rest-events logo"/>
+</p>
+
+# micro-rest-events
 
 [![Build](https://github.com/jtrw/micro-rest-events/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/jtrw/micro-rest-events/actions)
 [![codecov](https://codecov.io/gh/jtrw/micro-rest-events/graph/badge.svg?token=MXC3NMIN2V)](https://codecov.io/gh/jtrw/micro-rest-events)
 
-Simple rest service for events
-
-## DB
-
-`make shared-service-setup-db` - Create database and user
-
-
-## Description
-
-## Overview
-
-The Micro-Rest-Events service is designed to handle RESTful operations for managing events. It provides endpoints to create, update, and retrieve events, as well as manage event statuses and user interactions.
+Lightweight microservice for managing user notifications and events. Provides a **web dashboard** (htmx, session auth) and a **JSON REST API** (JWT auth). Supports SQLite and PostgreSQL.
 
 ## Features
 
-### 1. Create Single Event
-Endpoint: `POST /api/v1/events`
+- Create, update, and query events per user
+- Mark events as seen (sets `is_seen = true` and `status = seen`)
+- Bulk operations: batch create, batch status update
+- Web dashboard with filters, pagination, and status management
+- Dual auth: form-based session cookie for the web UI, JWT for the API
 
-Allows the creation of a single event with the following parameters:
-- `type`: Type of event
-- `user_id`: User identifier
-- Optional: `caption`, `body`, `status`
+## Quick start
 
-Example:
-```go
-// Example request payload
+```bash
+# SQLite (default — no extra setup needed)
+go run ./cmd/server
+
+# PostgreSQL
+go run ./cmd/server --conn "postgres://user:pass@localhost/events?sslmode=disable"
+
+# Custom listen address and credentials
+go run ./cmd/server --listen :8080 --auth-login admin --auth-password secret
+```
+
+The server starts on `:8181` by default. Open `http://localhost:8181` to access the dashboard.
+
+## Configuration
+
+| Flag | Env | Default | Description |
+|------|-----|---------|-------------|
+| `-l` / `--listen` | `LISTEN` | `:8181` | Listen address |
+| `-s` / `--secret` | `EVENT_SECRET_KEY` | `123` | JWT secret + HMAC key for session cookies |
+| `--auth-login` | `AUTH_LOGIN` | `admin` | Web UI username |
+| `--auth-password` | `AUTH_PASSWORD` | `admin` | Web UI password (empty = auth disabled) |
+| `--conn` | `CONNECTION_DSN` | `micro_events.db` | DB connection string |
+| `--dsn` | `POSTGRES_DSN` | — | PostgreSQL DSN (alternative to `--conn`) |
+| `--dbg` | `DEBUG` | `false` | Enable colored debug logging |
+
+**Connection string detection:**
+- `postgres://...` → PostgreSQL
+- `file:/...` / `*.sqlite` / `*.db` → SQLite
+
+## API
+
+All API endpoints are under `/api/v1` and require a JWT in the `Api-Token` header. The token must contain a `user_id` claim.
+
+### Create event
+
+```
+POST /api/v1/events
+```
+
+```json
 {
     "type": "notification",
     "user_id": "12345",
-    "caption": "New Notification",
-    "body": "This is a notification message.",
+    "caption": "New message",
+    "body": "Hello!",
     "status": "new"
 }
 ```
 
-### 2. Create Batch Events
+Response: `201 Created` — `{"status": "ok", "uuid": "<uuid>"}`
 
-Endpoint: POST `/api/v1/events/batch`
-
-Enables the creation of multiple events for different users simultaneously by providing:
-
-- `type`: Type of event
-- `users`: Array of user identifiers
-Example:
+### Create batch events
 
 ```
-// Example request payload
+POST /api/v1/events/batch
+```
+
+```json
 {
     "type": "alert",
     "users": ["user1", "user2", "user3"]
 }
 ```
 
-### 3. Update Event Status
-Endpoint: POST `/api/v1/events/{uuid}`
+Response: `201 Created` — `{"status": "ok"}`
 
-Updates the status of a specific event by UUID.
+### Update event
 
-Example:
 ```
-// Example request payload
+POST /api/v1/events/{uuid}
+```
+
+```json
 {
-    "status": "resolved"
+    "status": "done",
+    "message": "Processed successfully"
 }
 ```
 
-### 4. Get Events by User ID
-Endpoint: GET `/api/v1/events/users/{id}`
+### Get events by user
 
-Retrieves events based on a specific user identifier.
+```
+GET /api/v1/events/users/{id}?status=new&status=done&date_from=2024-01-01
+```
 
-### 5. Set Event as Seen
-Endpoint: POST `/api/v1/events/{uuid}/seen`
+Query params:
+- `status` — filter by status (repeatable)
+- `date_from` — filter by `updated_at >= date`
 
-Marks an event as "seen."
+### Mark as seen
 
-## Usage
-To use the Micro-Rest-Events service, follow these steps:
+```
+POST /api/v1/events/{uuid}/seen
+```
 
-### Prerequisites
+Sets `is_seen = true` and `status = seen`.
 
-1. GoLang environment set up.
-1. Ensure required dependencies are installed (go get command might be needed).
+### Bulk status update
 
-### Configuration
+```
+POST /api/v1/events/change/batch
+```
 
-Configure service settings:
-1. Modify .env file or set environment variables (e.g., POSTGRES_DSN, LISTEN, etc.).
-1. Ensure a PostgreSQL database connection is available.
+```json
+{
+    "uuids": ["uuid1", "uuid2"],
+    "status": "done"
+}
+```
 
-### Running the Service
+## Web dashboard
 
-1. Build and run the application using the GoLang command: `go run main.go`
-1. Service starts running on the specified address (default: localhost:8080).
-1. Access the various endpoints to perform CRUD operations on events.
+Open `http://localhost:8181` in your browser. Login with the configured credentials.
 
-### Notes
+- Filter events by user ID, status, date
+- Create events via form
+- Change event status inline
+- Mark events as seen
+- Pagination (20 events per page)
 
-1. Ensure proper error handling for all API calls.
-1. Secure endpoints using authentication mechanisms if deploying in a production environment.
-1. Monitor service logs for errors and warnings.
+CORS is controlled by the `ALLOWED_ORIGINS` environment variable:
+- Not set → `*` (allow all)
+- Set → comma-separated list, e.g. `https://app.example.com,https://admin.example.com`
 
+## Docker
 
-POST - `/events` Create new event
-POST - `/events/{uuid}` Update event
-GET - `/events/users/{id}` Get all events by user id
-POST - `/events/{uuid}/seen/` Mark event as seen
+```bash
+docker pull ghcr.io/jtrw/micro-rest-events:latest
 
+docker run -p 8181:8181 \
+  -e EVENT_SECRET_KEY=mysecret \
+  -e AUTH_LOGIN=admin \
+  -e AUTH_PASSWORD=changeme \
+  -v $(pwd)/data:/data \
+  ghcr.io/jtrw/micro-rest-events:latest --conn /data/events.db
+```
 
+Multi-platform image (`linux/amd64`, `linux/arm64`) is published to GHCR on every tagged release.
 
-### For feature
-POST - `/events/{uuid}/status/in_progress` Change status of event in progress
-POST - `/events/{uuid}/status/done` Change status of event done
-POST - `/events/{uuid}/status/error` Change status of event error
+## Running tests
 
-## Test
-`go test -v app/backend -coverprofile=coverage.out && go tool cover -html=coverage.out -o coverage.html`
+```bash
+# All tests (sequential packages to avoid OOM on macOS)
+go test -p 1 -count=1 ./... -timeout 120s
+
+# With coverage
+go test -p 1 -count=1 ./... -timeout 120s -coverprofile=coverage.out
+go tool cover -func=coverage.out
+```
+
+Repository tests use a real SQLite `:memory:` database. Web handler tests use a testify mock.

@@ -240,6 +240,107 @@ func TestGetAllByUserId_Empty(t *testing.T) {
 	}
 }
 
+// --- Count ---
+
+func TestCount_Empty(t *testing.T) {
+	repo := newTestDB(t)
+	n, err := repo.Count(Query{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 0 {
+		t.Errorf("expected 0, got %d", n)
+	}
+}
+
+func TestCount_All(t *testing.T) {
+	repo := newTestDB(t)
+	seedEvent(t, repo, Event{Uuid: "cnt1", UserId: "u1", Type: "t", Status: "new"})
+	seedEvent(t, repo, Event{Uuid: "cnt2", UserId: "u2", Type: "t", Status: "done"})
+	seedEvent(t, repo, Event{Uuid: "cnt3", UserId: "u3", Type: "t", Status: "new"})
+
+	n, err := repo.Count(Query{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 3 {
+		t.Errorf("expected 3, got %d", n)
+	}
+}
+
+func TestCount_FilterByStatus(t *testing.T) {
+	repo := newTestDB(t)
+	seedEvent(t, repo, Event{Uuid: "cnt4", UserId: "u1", Type: "t", Status: "new"})
+	seedEvent(t, repo, Event{Uuid: "cnt5", UserId: "u1", Type: "t", Status: "done"})
+	seedEvent(t, repo, Event{Uuid: "cnt6", UserId: "u1", Type: "t", Status: "new"})
+
+	n, err := repo.Count(Query{Statuses: []string{"new"}})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 2 {
+		t.Errorf("expected 2, got %d", n)
+	}
+}
+
+func TestCount_FilterByMultipleStatuses(t *testing.T) {
+	repo := newTestDB(t)
+	seedEvent(t, repo, Event{Uuid: "cnt7", UserId: "u1", Type: "t", Status: "new"})
+	seedEvent(t, repo, Event{Uuid: "cnt8", UserId: "u1", Type: "t", Status: "done"})
+	seedEvent(t, repo, Event{Uuid: "cnt9", UserId: "u1", Type: "t", Status: "error"})
+
+	n, err := repo.Count(Query{Statuses: []string{"new", "done"}})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 2 {
+		t.Errorf("expected 2, got %d", n)
+	}
+}
+
+// --- CountByUserId ---
+
+func TestCountByUserId_Empty(t *testing.T) {
+	repo := newTestDB(t)
+	n, err := repo.CountByUserId("unknown", Query{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 0 {
+		t.Errorf("expected 0, got %d", n)
+	}
+}
+
+func TestCountByUserId_OnlyCountsTargetUser(t *testing.T) {
+	repo := newTestDB(t)
+	seedEvent(t, repo, Event{Uuid: "cu1", UserId: "user-X", Type: "t", Status: "new"})
+	seedEvent(t, repo, Event{Uuid: "cu2", UserId: "user-X", Type: "t", Status: "done"})
+	seedEvent(t, repo, Event{Uuid: "cu3", UserId: "user-Y", Type: "t", Status: "new"})
+
+	n, err := repo.CountByUserId("user-X", Query{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 2 {
+		t.Errorf("expected 2, got %d", n)
+	}
+}
+
+func TestCountByUserId_FilterByStatus(t *testing.T) {
+	repo := newTestDB(t)
+	seedEvent(t, repo, Event{Uuid: "cu4", UserId: "user-Z", Type: "t", Status: "new"})
+	seedEvent(t, repo, Event{Uuid: "cu5", UserId: "user-Z", Type: "t", Status: "done"})
+	seedEvent(t, repo, Event{Uuid: "cu6", UserId: "user-Z", Type: "t", Status: "new"})
+
+	n, err := repo.CountByUserId("user-Z", Query{Statuses: []string{"new"}})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != 2 {
+		t.Errorf("expected 2, got %d", n)
+	}
+}
+
 // --- ChangeStatus ---
 
 func TestChangeStatus(t *testing.T) {
