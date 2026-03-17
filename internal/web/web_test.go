@@ -28,6 +28,8 @@ func newTestServer(t *testing.T, store repository.StoreProviderInterface) *Serve
 		Listen:        "localhost:0",
 		Secret:        "secret",
 		Version:       "test",
+		AuthLogin:     "admin",
+		AuthPassword:  "admin",
 		StoreProvider: store,
 		tmpl:          tmpl,
 	}
@@ -37,6 +39,7 @@ func newTestServer(t *testing.T, store repository.StoreProviderInterface) *Serve
 
 func TestDashboard_OK(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(1, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{{Uuid: "a1b2c3d4-uuid", Status: "new"}}, nil)
 
@@ -52,6 +55,7 @@ func TestDashboard_OK(t *testing.T) {
 
 func TestDashboard_FilterByUserID(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("CountByUserId", "user-1", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAllByUserId", "user-1", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, nil)
 
@@ -66,6 +70,7 @@ func TestDashboard_FilterByUserID(t *testing.T) {
 
 func TestDashboard_StoreError(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, fmt.Errorf("db error"))
 
@@ -82,6 +87,7 @@ func TestDashboard_StoreError(t *testing.T) {
 
 func TestEventsTable_OK(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, nil)
 
@@ -100,6 +106,7 @@ func TestEventsTable_WithEvents(t *testing.T) {
 		{Uuid: "bbbbbbbb-uuid-2", UserId: "u1", Type: "info", Status: "done", IsSeen: true},
 	}
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(len(events), nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).Return(events, nil)
 
 	srv := newTestServer(t, mockRepo)
@@ -119,7 +126,8 @@ func TestEventsTable_WithEvents(t *testing.T) {
 func TestCreateEvent_OK(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
 	mockRepo.On("Create", mock.AnythingOfType("repository.Event")).Return(nil)
-	// after Create, loadDashboardData sees user_id=u1 in the parsed form → GetAllByUserId
+	// after Create, loadDashboardData sees user_id=u1 in the parsed form → CountByUserId + GetAllByUserId
+	mockRepo.On("CountByUserId", "u1", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAllByUserId", "u1", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, nil)
 
@@ -182,6 +190,7 @@ func TestChangeStatus_OK(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
 	mockRepo.On("ChangeStatus", "test-uuid", mock.AnythingOfType("repository.Event")).
 		Return(int64(1), nil)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, nil)
 
@@ -236,6 +245,7 @@ func TestChangeStatus_StoreError(t *testing.T) {
 func TestMarkSeen_OK(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
 	mockRepo.On("ChangeIsSeen", "test-uuid").Return(int64(1), nil)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, nil)
 
@@ -276,6 +286,7 @@ func TestLoadDashboardData_Counts(t *testing.T) {
 		{Status: "new", IsSeen: true},
 	}
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(3, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).Return(events, nil)
 
 	srv := newTestServer(t, mockRepo)
@@ -292,6 +303,7 @@ func TestLoadDashboardData_Counts(t *testing.T) {
 
 func TestLoadDashboardData_WithUserID(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("CountByUserId", "u42", mock.AnythingOfType("repository.Query")).Return(1, nil)
 	mockRepo.On("GetAllByUserId", "u42", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{{Uuid: "x", Status: "new"}}, nil)
 
@@ -308,8 +320,10 @@ func TestLoadDashboardData_WithUserID(t *testing.T) {
 
 func TestLoadDashboardData_WithStatusFilter(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
-	mockRepo.On("GetAll", repository.Query{Statuses: []string{"done"}, DateFrom: ""}).
-		Return([]repository.Event{{Status: "done"}}, nil)
+	filterQ := repository.Query{Statuses: []string{"done"}, DateFrom: ""}
+	pageQ := repository.Query{Statuses: []string{"done"}, DateFrom: "", Limit: defaultPerPage, Offset: 0}
+	mockRepo.On("Count", filterQ).Return(1, nil)
+	mockRepo.On("GetAll", pageQ).Return([]repository.Event{{Status: "done"}}, nil)
 
 	srv := newTestServer(t, mockRepo)
 	req := httptest.NewRequest(http.MethodGet, "/?status=done", nil)
@@ -324,6 +338,7 @@ func TestLoadDashboardData_WithStatusFilter(t *testing.T) {
 
 func TestLoadDashboardData_StoreErrorReturnsEmptySlice(t *testing.T) {
 	mockRepo := new(mock_event.MockEventRepository)
+	mockRepo.On("Count", mock.AnythingOfType("repository.Query")).Return(0, nil)
 	mockRepo.On("GetAll", mock.AnythingOfType("repository.Query")).
 		Return([]repository.Event{}, fmt.Errorf("db error"))
 

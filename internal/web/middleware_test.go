@@ -115,3 +115,73 @@ func TestCors_OptionsDoesNotCallNext(t *testing.T) {
 
 	assert.False(t, called)
 }
+
+// --- Auth middleware ---
+
+const testToken = "test-bearer-token-abc123"
+
+func TestAuth_ValidToken(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer "+testToken)
+	rr := httptest.NewRecorder()
+
+	Auth(testToken)(nextOK).ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestAuth_InvalidToken(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer wrong-token")
+	rr := httptest.NewRecorder()
+
+	Auth(testToken)(nextOK).ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestAuth_NoHeader(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+
+	Auth(testToken)(nextOK).ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestAuth_BearerPrefixStripped(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer  "+testToken)
+	rr := httptest.NewRecorder()
+
+	Auth(testToken)(nextOK).ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestAuth_PassthroughToNextHandler(t *testing.T) {
+	called := false
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.WriteHeader(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer "+testToken)
+	Auth(testToken)(next).ServeHTTP(httptest.NewRecorder(), req)
+
+	assert.True(t, called)
+}
+
+func TestAuth_DoesNotCallNextOnInvalid(t *testing.T) {
+	called := false
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer bad")
+	Auth(testToken)(next).ServeHTTP(httptest.NewRecorder(), req)
+
+	assert.False(t, called)
+}

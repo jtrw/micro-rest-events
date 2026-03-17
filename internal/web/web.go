@@ -4,19 +4,27 @@ import (
 	"log/slog"
 	"micro-rest-events/internal/repository"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
+const defaultPerPage = 20
+
 type dashboardData struct {
-	Events   []repository.Event
-	UserID   string
-	Status   string
-	DateFrom string
-	Total    int
-	New      int
-	Seen     int
+	Events     []repository.Event
+	UserID     string
+	Status     string
+	DateFrom   string
+	Total      int
+	New        int
+	Seen       int
+	Page       int
+	PerPage    int
+	TotalPages int
+	PrevPage   int
+	NextPage   int
 }
 
 func (s *Server) dashboard(w http.ResponseWriter, r *http.Request) {
@@ -140,32 +148,60 @@ func (s *Server) loadDashboardData(r *http.Request) (dashboardData, error) {
 	status := r.FormValue("status")
 	dateFrom := r.FormValue("date_from")
 
+	page := 1
+	if p, err := strconv.Atoi(r.FormValue("page")); err == nil && p > 1 {
+		page = p
+	}
+
 	var statuses []string
 	if status != "" {
 		statuses = []string{status}
 	}
 
-	q := repository.Query{Statuses: statuses, DateFrom: dateFrom}
-
-	var events []repository.Event
-	var err error
-
-	if userID != "" {
-		events, err = s.StoreProvider.GetAllByUserId(userID, q)
-	} else {
-		events, err = s.StoreProvider.GetAll(q)
+	filterQ := repository.Query{Statuses: statuses, DateFrom: dateFrom}
+	pageQ := repository.Query{
+		Statuses: statuses,
+		DateFrom: dateFrom,
+		Limit:    defaultPerPage,
+		Offset:   (page - 1) * defaultPerPage,
 	}
 
-	if err != nil {
+	var events []repository.Event
+	var total int
+
+	if userID != "" {
+		total, _ = s.StoreProvider.CountByUserId(userID, filterQ)
+		events, _ = s.StoreProvider.GetAllByUserId(userID, pageQ)
+	} else {
+		total, _ = s.StoreProvider.Count(filterQ)
+		events, _ = s.StoreProvider.GetAll(pageQ)
+	}
+
+	if events == nil {
 		events = []repository.Event{}
 	}
 
+	totalPages := (total + defaultPerPage - 1) / defaultPerPage
+	prevPage := page - 1
+	if prevPage < 1 {
+		prevPage = 0
+	}
+	nextPage := page + 1
+	if nextPage > totalPages {
+		nextPage = 0
+	}
+
 	data := dashboardData{
-		Events:   events,
-		UserID:   userID,
-		Status:   status,
-		DateFrom: dateFrom,
-		Total:    len(events),
+		Events:     events,
+		UserID:     userID,
+		Status:     status,
+		DateFrom:   dateFrom,
+		Total:      total,
+		Page:       page,
+		PerPage:    defaultPerPage,
+		TotalPages: totalPages,
+		PrevPage:   prevPage,
+		NextPage:   nextPage,
 	}
 
 	for _, e := range events {

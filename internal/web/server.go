@@ -26,6 +26,8 @@ type Server struct {
 	Listen        string
 	Secret        string
 	Version       string
+	AuthLogin     string
+	AuthPassword  string
 	StoreProvider provider.StoreProviderInterface
 	tmpl          *template.Template
 }
@@ -77,12 +79,20 @@ func (s *Server) routes() chi.Router {
 	// Static files
 	router.Handle("/static/*", http.FileServerFS(embedFS))
 
-	// Web UI
-	router.Get("/", s.dashboard)
-	router.Get("/web/events", s.eventsTable)
-	router.Post("/web/events", s.createEvent)
-	router.Post("/web/events/{uuid}/status", s.changeStatus)
-	router.Post("/web/events/{uuid}/seen", s.markSeen)
+	// Auth (form-based)
+	router.Get("/login", s.handleLoginPage)
+	router.Post("/login", s.handleLoginSubmit)
+	router.Get("/logout", s.handleLogout)
+
+	// Web UI (protected by session cookie via AuthMiddleware)
+	router.Group(func(r chi.Router) {
+		r.Use(s.AuthMiddleware)
+		r.Get("/", s.dashboard)
+		r.Get("/web/events", s.eventsTable)
+		r.Post("/web/events", s.createEvent)
+		r.Post("/web/events/{uuid}/status", s.changeStatus)
+		r.Post("/web/events/{uuid}/seen", s.markSeen)
+	})
 
 	// API
 	h := Handler{StoreProvider: s.StoreProvider}

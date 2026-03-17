@@ -120,9 +120,15 @@ func (repo StoreProvider) GetAll(q Query) ([]Event, error) {
 	if len(q.DateFrom) > 0 {
 		sql += fmt.Sprintf(` AND updated_at >= $%d`, argNum)
 		args = append(args, q.DateFrom)
+		argNum++
 	}
 
 	sql += ` ORDER BY created_at DESC`
+
+	if q.Limit > 0 {
+		sql += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, argNum, argNum+1)
+		args = append(args, q.Limit, q.Offset)
+	}
 
 	rows, err := repo.db.Query(sql, args...)
 	if err != nil {
@@ -171,9 +177,15 @@ func (repo StoreProvider) GetAllByUserId(userId string, q Query) ([]Event, error
 	if len(q.DateFrom) > 0 {
 		sql += fmt.Sprintf(` AND updated_at >= $%d`, argNum)
 		args = append(args, q.DateFrom)
+		argNum++
 	}
 
 	sql += ` ORDER BY created_at ASC`
+
+	if q.Limit > 0 {
+		sql += fmt.Sprintf(` LIMIT $%d OFFSET $%d`, argNum, argNum+1)
+		args = append(args, q.Limit, q.Offset)
+	}
 
 	rows, err := repo.db.Query(sql, args...)
 
@@ -206,6 +218,56 @@ func (repo StoreProvider) GetAllByUserId(userId string, q Query) ([]Event, error
 	return events, nil
 }
 
+func (repo StoreProvider) Count(q Query) (int, error) {
+	sql := `SELECT COUNT(*) FROM "events" WHERE 1=1`
+	args := []interface{}{}
+	argNum := 1
+
+	if len(q.Statuses) > 0 {
+		placeholders := make([]string, len(q.Statuses))
+		for i, status := range q.Statuses {
+			placeholders[i] = fmt.Sprintf("$%d", argNum)
+			args = append(args, status)
+			argNum++
+		}
+		sql += ` AND status IN (` + strings.Join(placeholders, ", ") + `)`
+	}
+
+	if len(q.DateFrom) > 0 {
+		sql += fmt.Sprintf(` AND updated_at >= $%d`, argNum)
+		args = append(args, q.DateFrom)
+	}
+
+	var count int
+	err := repo.db.QueryRow(sql, args...).Scan(&count)
+	return count, err
+}
+
+func (repo StoreProvider) CountByUserId(userId string, q Query) (int, error) {
+	sql := `SELECT COUNT(*) FROM "events" WHERE user_id = $1`
+	args := []interface{}{userId}
+	argNum := 2
+
+	if len(q.Statuses) > 0 {
+		placeholders := make([]string, len(q.Statuses))
+		for i, status := range q.Statuses {
+			placeholders[i] = fmt.Sprintf("$%d", argNum)
+			args = append(args, status)
+			argNum++
+		}
+		sql += ` AND status IN (` + strings.Join(placeholders, ", ") + `)`
+	}
+
+	if len(q.DateFrom) > 0 {
+		sql += fmt.Sprintf(` AND updated_at >= $%d`, argNum)
+		args = append(args, q.DateFrom)
+	}
+
+	var count int
+	err := repo.db.QueryRow(sql, args...).Scan(&count)
+	return count, err
+}
+
 func (repo StoreProvider) ChangeStatus(uuid string, e Event) (int64, error) {
 	sql := `UPDATE "events" SET status = $1, updated_at = $2`
 	args := []interface{}{e.Status, time.Now().UTC()}
@@ -236,7 +298,7 @@ func (repo StoreProvider) ChangeStatus(uuid string, e Event) (int64, error) {
 }
 
 func (repo StoreProvider) ChangeIsSeen(uuid string) (int64, error) {
-	sql := `UPDATE "events" SET is_seen = true, updated_at = $1 WHERE uuid = $2`
+	sql := `UPDATE "events" SET is_seen = true, status = 'seen', updated_at = $1 WHERE uuid = $2`
 	res, err := repo.db.Exec(sql, time.Now(), uuid)
 
 	if err != nil {
