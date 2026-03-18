@@ -25,6 +25,8 @@ RUN go build -o /rest-events -ldflags "-X main.revision=${version} -s -w" ./cmd/
 
 FROM scratch
 
+LABEL org.opencontainers.image.source = "https://github.com/jtrw/micro-rest-events"
+
 COPY --from=backend /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=backend /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=backend /rest-events /srv/rest-events
